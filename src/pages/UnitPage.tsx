@@ -62,18 +62,27 @@ export function UnitPage({ cat }: { cat: Catalog }) {
 function LessonBody({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
   const { toggleScrap, isScrapped, data } = useUser();
   const pred = data.predictions[lesson.id];
+  const hasLab = !!lesson.lab && lesson.lab.type !== "planned";
   return (
     <section className="lesson-body">
-      <div className={"stage" + (lesson.predict && !pred ? " gated" : "")}>
-        {lesson.predict && !pred && <PredictGate lesson={lesson} />}
-        {lesson.lab ? <LabView lab={lesson.lab} accent={unit.accent} /> : (
-          <div className="stage-empty">
+      {hasLab ? (
+        <div className={"stage" + (lesson.predict && !pred ? " gated" : "")}>
+          {lesson.predict && !pred && <PredictGate lesson={lesson} />}
+          <LabView lab={lesson.lab!} accent={unit.accent} />
+        </div>
+      ) : (
+        <>
+          {lesson.predict && !pred && <div className="stage-inline"><PredictGate lesson={lesson} /></div>}
+          <div className="lesson-hero">
             <span className={`tile tile-lg accent-${unit.accent}`}><Icon name={unit.icon} size={28} /></span>
-            <h3>{lesson.title}</h3>
-            <p>이 학습에는 아직 3D 랩이 연결되지 않았습니다.</p>
+            <div>
+              <div className="eyebrow">{lesson.standard.code ?? unit.title}</div>
+              <h2 className="lesson-hero-title">{lesson.title}</h2>
+              {lesson.lab?.type === "planned" && <span className="chip-static accent-primary"><Icon name="cube" size={12} /> 3D 랩 제작 예정 · {String(lesson.lab.params?.name ?? "")}</span>}
+            </div>
           </div>
-        )}
-      </div>
+        </>
+      )}
 
       {lesson.predict && pred && (
         <div className={"card reveal-card " + (pred.right ? "ok" : "bad")}>

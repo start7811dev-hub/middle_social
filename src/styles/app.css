@@ -442,3 +442,10 @@ h5, .t-h5 { font-size: var(--fs-h5); line-height: 1.5; font-weight: 600; }
 .section-no { font-size: 12px; font-weight: 600; color: var(--primary); letter-spacing: .08em; margin-bottom: 6px; }
 .section-point { display: flex; gap: 8px; align-items: flex-start; margin-top: 16px !important; padding: 12px 14px; border-radius: var(--r-sm); background: var(--primary-soft); color: var(--primary) !important; font-weight: 600; font-size: var(--fs-body); }
 .section-point svg { flex: none; margin-top: 3px; }
+
+/* 3D 랩이 없는 학습: 예측 카드를 흐름 안에, 상단은 제목 히어로 */
+.stage-inline .gate { position: static; padding: 0; }
+.stage-inline .gate-card { width: 100%; background: var(--surface); }
+.lesson-hero { display: flex; gap: var(--s-4); align-items: center; padding: var(--s-5) var(--s-6); border-radius: var(--r-xl); background: radial-gradient(80% 140% at 0% 0%, var(--surface), var(--bg-2)); box-shadow: var(--sh-1); }
+.lesson-hero-title { margin: 2px 0 8px; }
+.lesson-hero .chip-static { display: inline-flex; align-items: center; gap: 4px; }
