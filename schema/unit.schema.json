@@ -262,6 +262,31 @@
         "mission": {
           "type": "string",
           "description": "현장 미션 — 생활 속에서 찾아 사진으로 남기는 과제"
+        },
+        "sources": {
+          "type": "array",
+          "description": "출처·사료 목록 (역사·근현대사 필수)",
+          "items": {
+            "type": "object",
+            "required": [
+              "title"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "publisher": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              },
+              "note": {
+                "type": "string"
+              }
+            }
+          }
         }
       }
     }

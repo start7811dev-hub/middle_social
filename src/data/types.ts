@@ -10,7 +10,7 @@ export interface Media { type: "image" | "video" | "model"; src: string; caption
 
 export interface Lesson {
   id: string; title: string; standard: Standard;
-  lab?: Lab; predict?: Predict; mission?: string; media?: Media[]; concepts: Concept[]; quiz: QuizItem[];
+  lab?: Lab; predict?: Predict; sources?: { title: string; publisher?: string; url?: string; note?: string }[]; mission?: string; media?: Media[]; concepts: Concept[]; quiz: QuizItem[];
 }
 export interface Unit {
   id: string; book: "s1" | "s2"; area: Area; no: number; title: string;

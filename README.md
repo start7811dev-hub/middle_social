@@ -27,4 +27,4 @@ npm run mac:build    # Mac 설치 파일 → release/*.dmg, *.zip  (macOS에서 
 - 학습 기능: 복습 문제 → 오답 노트 자동 저장, 스크랩, 주석, 사진 첨부 (기기 내 저장)
 - 개념·문제가 채워진 학습은 4개. 나머지 66개 학습은 콘텐츠 제작 필요
 
-문서: [스타일](docs/STYLE.md) · [콘텐츠 추가](docs/CONTENT_GUIDE.md) · [교육과정 대조](docs/CURRICULUM_CHECK.md) · [Mac 앱](docs/MAC_APP.md)
+문서: [스타일](docs/STYLE.md) · [콘텐츠 추가](docs/CONTENT_GUIDE.md) · [교육과정 대조](docs/CURRICULUM_CHECK.md) · [Mac 앱](docs/MAC_APP.md) · [학습 방법론](docs/LEARNING_METHOD.md) · [역사 편집 원칙](docs/EDITORIAL_HISTORY.md)
