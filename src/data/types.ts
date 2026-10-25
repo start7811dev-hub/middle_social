@@ -2,6 +2,7 @@ export type Accent = "primary" | "sky" | "magenta" | "orange" | "green" | "coral
 export type Area = "지리" | "일반사회";
 
 export interface Standard { code: string | null; text: string | null; verified: boolean }
+export interface Section { title: string; text: string; point?: string }
 export interface Concept { term: string; desc: string }
 export interface QuizItem { id: string; q: string; choices: string[]; answer: number; explain: string }
 export interface Lab { type: string; params?: Record<string, unknown> }
@@ -10,7 +11,7 @@ export interface Media { type: "image" | "video" | "model"; src: string; caption
 
 export interface Lesson {
   id: string; title: string; standard: Standard;
-  lab?: Lab; predict?: Predict; sources?: { title: string; publisher?: string; url?: string; note?: string }[]; mission?: string; media?: Media[]; concepts: Concept[]; quiz: QuizItem[];
+  lab?: Lab; predict?: Predict; sections?: Section[]; sources?: { title: string; publisher?: string; url?: string; note?: string }[]; mission?: string; media?: Media[]; concepts: Concept[]; quiz: QuizItem[];
 }
 export interface Unit {
   id: string; book: "s1" | "s2"; area: Area; no: number; title: string;

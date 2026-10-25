@@ -434,3 +434,11 @@ h5, .t-h5 { font-size: var(--fs-h5); line-height: 1.5; font-weight: 600; }
 .row.center { justify-content: center; }
 @media (max-width: 700px) { .lit-meter .t-caption { display: none; } .gate-choices { grid-template-columns: 1fr; } }
 .ans.warn { background: color-mix(in srgb, var(--orange) 12%, transparent); color: #b5762f; }
+
+/* 본문 섹션 */
+.section { position: relative; padding: var(--s-6); }
+.section h3 { margin: 0 0 6px; }
+.section p { margin: 10px 0 0; color: var(--ink); max-width: 68ch; }
+.section-no { font-size: 12px; font-weight: 600; color: var(--primary); letter-spacing: .08em; margin-bottom: 6px; }
+.section-point { display: flex; gap: 8px; align-items: flex-start; margin-top: 16px !important; padding: 12px 14px; border-radius: var(--r-sm); background: var(--primary-soft); color: var(--primary) !important; font-weight: 600; font-size: var(--fs-body); }
+.section-point svg { flex: none; margin-top: 3px; }

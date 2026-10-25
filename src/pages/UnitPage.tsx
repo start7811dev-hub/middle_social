@@ -87,8 +87,6 @@ function LessonBody({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
         </div>
       )}
 
-      {lesson.mission && <Mission lesson={lesson} />}
-
       <div className="card standard-card">
         <div className="card-head">
           <span className="eyebrow">성취기준 {lesson.standard.code && <b className="code">[{lesson.standard.code}]</b>}</span>
@@ -101,6 +99,15 @@ function LessonBody({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
         </div>
         <p className="standard-text">{lesson.standard.text ?? "성취기준 원문 대조 후 입력 예정입니다."}</p>
       </div>
+
+      {lesson.sections?.map((sec, k) => (
+        <article key={k} className="card section">
+          <div className="section-no num">{String(k + 1).padStart(2, "0")}</div>
+          <h3>{sec.title}</h3>
+          {sec.text.split(/\n\n+/).map((para, j) => <p key={j} className="t-body-l">{para}</p>)}
+          {sec.point && <p className="section-point"><Icon name="idea" size={16} /> {sec.point}</p>}
+        </article>
+      ))}
 
       {lesson.concepts.length > 0 && (
         <div className="concepts">
@@ -118,6 +125,8 @@ function LessonBody({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
           ))}
         </div>
       )}
+
+      {lesson.mission && <Mission lesson={lesson} />}
     </section>
   );
 }
