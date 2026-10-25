@@ -1,0 +1,144 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "2026.10.25",
+  "curriculum": "2022 개정 교육과정",
+  "source": "교육부 고시 제2022-33호 [별책 7] 사회과 교육과정 (원문 인용 자료로 대조)",
+  "books": [
+    {
+      "id": "s1",
+      "title": "사회①",
+      "defaultGrade": 1,
+      "units": [
+        "s1-g01",
+        "s1-g02",
+        "s1-g03",
+        "s1-g04",
+        "s1-g05",
+        "s1-g06",
+        "s1-s01",
+        "s1-s02",
+        "s1-s03",
+        "s1-s04",
+        "s1-s05",
+        "s1-s06"
+      ]
+    },
+    {
+      "id": "s2",
+      "title": "사회②",
+      "defaultGrade": 3,
+      "units": [
+        "s2-s07",
+        "s2-s08",
+        "s2-s09",
+        "s2-s10",
+        "s2-s11",
+        "s2-s12",
+        "s2-g07",
+        "s2-g08",
+        "s2-g09",
+        "s2-g10",
+        "s2-g11",
+        "s2-g12"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "id": "s1-g01",
+      "path": "units/s1-g01.json"
+    },
+    {
+      "id": "s1-g02",
+      "path": "units/s1-g02.json"
+    },
+    {
+      "id": "s1-g03",
+      "path": "units/s1-g03.json"
+    },
+    {
+      "id": "s1-g04",
+      "path": "units/s1-g04.json"
+    },
+    {
+      "id": "s1-g05",
+      "path": "units/s1-g05.json"
+    },
+    {
+      "id": "s1-g06",
+      "path": "units/s1-g06.json"
+    },
+    {
+      "id": "s1-s01",
+      "path": "units/s1-s01.json"
+    },
+    {
+      "id": "s1-s02",
+      "path": "units/s1-s02.json"
+    },
+    {
+      "id": "s1-s03",
+      "path": "units/s1-s03.json"
+    },
+    {
+      "id": "s1-s04",
+      "path": "units/s1-s04.json"
+    },
+    {
+      "id": "s1-s05",
+      "path": "units/s1-s05.json"
+    },
+    {
+      "id": "s1-s06",
+      "path": "units/s1-s06.json"
+    },
+    {
+      "id": "s2-s07",
+      "path": "units/s2-s07.json"
+    },
+    {
+      "id": "s2-s08",
+      "path": "units/s2-s08.json"
+    },
+    {
+      "id": "s2-s09",
+      "path": "units/s2-s09.json"
+    },
+    {
+      "id": "s2-s10",
+      "path": "units/s2-s10.json"
+    },
+    {
+      "id": "s2-s11",
+      "path": "units/s2-s11.json"
+    },
+    {
+      "id": "s2-s12",
+      "path": "units/s2-s12.json"
+    },
+    {
+      "id": "s2-g07",
+      "path": "units/s2-g07.json"
+    },
+    {
+      "id": "s2-g08",
+      "path": "units/s2-g08.json"
+    },
+    {
+      "id": "s2-g09",
+      "path": "units/s2-g09.json"
+    },
+    {
+      "id": "s2-g10",
+      "path": "units/s2-g10.json"
+    },
+    {
+      "id": "s2-g11",
+      "path": "units/s2-g11.json"
+    },
+    {
+      "id": "s2-g12",
+      "path": "units/s2-g12.json"
+    }
+  ]
+}

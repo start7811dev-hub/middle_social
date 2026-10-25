@@ -1,0 +1,52 @@
+{
+  "id": "s1-s03",
+  "book": "s1",
+  "area": "일반사회",
+  "no": 3,
+  "title": "민주주의와 시민",
+  "icon": "columns",
+  "accent": "magenta",
+  "impact3d": 2,
+  "standardsVerified": true,
+  "lessons": [
+    {
+      "id": "s1-s03-1",
+      "title": "정치의 역할과 민주주의",
+      "standard": {
+        "code": "9사(일사)03-01",
+        "text": "공동체 생활에 필요한 정치의 역할을 탐색하고, 다양한 정치 사례를 통해 민주주의의 의미와 필요성을 도출한다.",
+        "verified": true
+      },
+      "concepts": [],
+      "quiz": []
+    },
+    {
+      "id": "s1-s03-2",
+      "title": "민주주의의 발전과 원리",
+      "standard": {
+        "code": "9사(일사)03-02",
+        "text": "민주주의의 발전 과정을 검토하고, 이를 토대로 민주주의의 이념과 기본 원리를 도출한다.",
+        "verified": true
+      },
+      "lab": {
+        "type": "planned",
+        "params": {
+          "name": "아테네 민회 3D 재현"
+        }
+      },
+      "concepts": [],
+      "quiz": []
+    },
+    {
+      "id": "s1-s03-3",
+      "title": "현대 민주주의의 과제",
+      "standard": {
+        "code": "9사(일사)03-03",
+        "text": "현대 민주주의의 특징과 과제를 검토하고, 우리나라 민주주의의 발전을 위한 제도적 방안과 시민의 역할에 대해 토의한다.",
+        "verified": true
+      },
+      "concepts": [],
+      "quiz": []
+    }
+  ]
+}

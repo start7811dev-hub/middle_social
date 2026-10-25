@@ -1,0 +1,53 @@
+{
+  "id": "s1-s02",
+  "book": "s1",
+  "area": "일반사회",
+  "no": 2,
+  "title": "다양한 문화의 이해",
+  "icon": "palette",
+  "accent": "sky",
+  "impact3d": 2,
+  "standardsVerified": true,
+  "lessons": [
+    {
+      "id": "s1-s02-1",
+      "title": "문화의 의미와 특징",
+      "standard": {
+        "code": "9사(일사)02-01",
+        "text": "일상생활에서 접하는 문화의 사례를 탐색하고, 이를 바탕으로 문화의 의미와 특징을 도출한다.",
+        "verified": true
+      },
+      "lab": {
+        "type": "planned",
+        "params": {
+          "name": "세계 전통 가옥 3D 비교"
+        }
+      },
+      "concepts": [],
+      "quiz": []
+    },
+    {
+      "id": "s1-s02-2",
+      "title": "미디어와 문화",
+      "standard": {
+        "code": "9사(일사)02-02",
+        "text": "우리 주변에서 활용되는 미디어들을 탐색하고, 미디어를 통해 경험하는 다양한 문화와 정보들을 비판적으로 검토한다.",
+        "verified": true
+      },
+      "mission": "오늘 본 광고나 영상 하나를 캡처하고, 무엇을 강조하고 무엇을 뺐는지 주석으로 적어 보자.",
+      "concepts": [],
+      "quiz": []
+    },
+    {
+      "id": "s1-s02-3",
+      "title": "문화를 이해하는 태도",
+      "standard": {
+        "code": "9사(일사)02-03",
+        "text": "여러 집단에서 나타나는 다양한 문화 사례들을 조사하고, 문화를 이해하는 바람직한 태도에 대하여 토의한다.",
+        "verified": true
+      },
+      "concepts": [],
+      "quiz": []
+    }
+  ]
+}

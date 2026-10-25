@@ -1,0 +1,39 @@
+{
+  "id": "s2-g11",
+  "book": "s2",
+  "area": "지리",
+  "no": 11,
+  "title": "북부 지역",
+  "icon": "snow",
+  "accent": "green",
+  "impact3d": 2,
+  "standardsVerified": false,
+  "lessons": [
+    {
+      "id": "s2-g11-1",
+      "title": "북부 지역의 자연환경",
+      "standard": {
+        "code": null,
+        "text": null,
+        "verified": false
+      },
+      "concepts": [],
+      "quiz": []
+    },
+    {
+      "id": "s2-g11-2",
+      "title": "북부 지역의 인문 환경과 통일 국토",
+      "standard": {
+        "code": null,
+        "text": null,
+        "verified": false
+      },
+      "concepts": [],
+      "quiz": []
+    }
+  ],
+  "geo": {
+    "lat": 40.5,
+    "lng": 127
+  }
+}

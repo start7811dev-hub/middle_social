@@ -1,0 +1,46 @@
+{
+  "id": "s2-s11",
+  "book": "s2",
+  "area": "일반사회",
+  "no": 11,
+  "title": "국제 사회와 한반도",
+  "icon": "handshake",
+  "accent": "green",
+  "impact3d": 2,
+  "standardsVerified": false,
+  "lessons": [
+    {
+      "id": "s2-s11-1",
+      "title": "국제 사회의 특성과 행위 주체",
+      "standard": {
+        "code": null,
+        "text": null,
+        "verified": false
+      },
+      "concepts": [],
+      "quiz": []
+    },
+    {
+      "id": "s2-s11-2",
+      "title": "국제 갈등과 협력",
+      "standard": {
+        "code": null,
+        "text": null,
+        "verified": false
+      },
+      "concepts": [],
+      "quiz": []
+    },
+    {
+      "id": "s2-s11-3",
+      "title": "한반도와 국제 관계",
+      "standard": {
+        "code": null,
+        "text": null,
+        "verified": false
+      },
+      "concepts": [],
+      "quiz": []
+    }
+  ]
+}

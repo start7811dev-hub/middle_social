@@ -1,0 +1,45 @@
+{
+  "id": "s2-g10",
+  "book": "s2",
+  "area": "지리",
+  "no": 10,
+  "title": "남부 지역",
+  "icon": "sun",
+  "accent": "orange",
+  "impact3d": 3,
+  "standardsVerified": false,
+  "lessons": [
+    {
+      "id": "s2-g10-1",
+      "title": "영남·호남 지역의 특성",
+      "standard": {
+        "code": null,
+        "text": null,
+        "verified": false
+      },
+      "concepts": [],
+      "quiz": []
+    },
+    {
+      "id": "s2-g10-2",
+      "title": "제주의 화산 지형과 생활",
+      "standard": {
+        "code": null,
+        "text": null,
+        "verified": false
+      },
+      "lab": {
+        "type": "planned",
+        "params": {
+          "name": "제주 화산섬 형성"
+        }
+      },
+      "concepts": [],
+      "quiz": []
+    }
+  ],
+  "geo": {
+    "lat": 35,
+    "lng": 127.5
+  }
+}

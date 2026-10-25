@@ -1,0 +1,56 @@
+{
+  "id": "s2-g12",
+  "book": "s2",
+  "area": "지리",
+  "no": 12,
+  "title": "지속가능한 세계와 글로컬 시민",
+  "icon": "leaf",
+  "accent": "coral",
+  "impact3d": 3,
+  "standardsVerified": false,
+  "lessons": [
+    {
+      "id": "s2-g12-1",
+      "title": "지구적 불평등",
+      "standard": {
+        "code": null,
+        "text": null,
+        "verified": false
+      },
+      "concepts": [],
+      "quiz": []
+    },
+    {
+      "id": "s2-g12-2",
+      "title": "지구 환경 문제",
+      "standard": {
+        "code": null,
+        "text": null,
+        "verified": false
+      },
+      "lab": {
+        "type": "planned",
+        "params": {
+          "name": "온실 효과 시뮬레이션"
+        }
+      },
+      "concepts": [],
+      "quiz": []
+    },
+    {
+      "id": "s2-g12-3",
+      "title": "글로컬 시민의 실천",
+      "standard": {
+        "code": null,
+        "text": null,
+        "verified": false
+      },
+      "concepts": [],
+      "quiz": []
+    }
+  ],
+  "geo": {
+    "lat": 0,
+    "lng": -20
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "id": "s1-s04",
+  "book": "s1",
+  "area": "일반사회",
+  "no": 4,
+  "title": "정치과정과 시민 참여",
+  "icon": "vote",
+  "accent": "orange",
+  "impact3d": 2,
+  "standardsVerified": true,
+  "lessons": [
+    {
+      "id": "s1-s04-1",
+      "title": "선거의 기능과 원칙",
+      "standard": {
+        "code": "9사(일사)04-01",
+        "text": "선거의 기능과 기본 원칙을 검토하고, 선거 과정에서 유권자와 정당이 수행하는 활동을 조사한다.",
+        "verified": true
+      },
+      "lab": {
+        "type": "planned",
+        "params": {
+          "name": "의석 배분 시뮬레이터"
+        }
+      },
+      "concepts": [],
+      "quiz": []
+    },
+    {
+      "id": "s1-s04-2",
+      "title": "정치 주체와 정치과정",
+      "standard": {
+        "code": "9사(일사)04-02",
+        "text": "정치활동에 참여하는 다양한 정치 주체의 역할을 탐색하고, 정치과정의 의미를 설명한다.",
+        "verified": true
+      },
+      "concepts": [],
+      "quiz": []
+    },
+    {
+      "id": "s1-s04-3",
+      "title": "지방 자치와 시민 참여",
+      "standard": {
+        "code": "9사(일사)04-03",
+        "text": "민주주의의 발전을 위한 지방 자치의 중요성을 설명하고, 지역사회의 문제를 해결하기 위한 시민 참여 활동을 계획한다.",
+        "verified": true
+      },
+      "mission": "주민센터·구청 게시판이나 누리집에서 주민 참여 안내문을 찾아 찍어 보자.",
+      "concepts": [],
+      "quiz": []
+    }
+  ]
+}

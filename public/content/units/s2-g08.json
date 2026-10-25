@@ -1,0 +1,57 @@
+{
+  "id": "s2-g08",
+  "book": "s2",
+  "area": "지리",
+  "no": 8,
+  "title": "우리나라의 자연환경과 인간 생활",
+  "icon": "mountain",
+  "accent": "sky",
+  "impact3d": 3,
+  "standardsVerified": false,
+  "lessons": [
+    {
+      "id": "s2-g08-1",
+      "title": "지형",
+      "standard": {
+        "code": null,
+        "text": null,
+        "verified": false
+      },
+      "lab": {
+        "type": "planned",
+        "params": {
+          "name": "한반도 3D 지형 랩"
+        }
+      },
+      "mission": "우리 동네에서 산·하천·평야 같은 지형이 보이는 풍경을 찍어 보자.",
+      "concepts": [],
+      "quiz": []
+    },
+    {
+      "id": "s2-g08-2",
+      "title": "기후",
+      "standard": {
+        "code": null,
+        "text": null,
+        "verified": false
+      },
+      "concepts": [],
+      "quiz": []
+    },
+    {
+      "id": "s2-g08-3",
+      "title": "자연재해와 기후 변화",
+      "standard": {
+        "code": null,
+        "text": null,
+        "verified": false
+      },
+      "concepts": [],
+      "quiz": []
+    }
+  ],
+  "geo": {
+    "lat": 36,
+    "lng": 127.5
+  }
+}

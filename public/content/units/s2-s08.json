@@ -1,0 +1,53 @@
+{
+  "id": "s2-s08",
+  "book": "s2",
+  "area": "일반사회",
+  "no": 8,
+  "title": "경제생활과 선택",
+  "icon": "coin",
+  "accent": "sky",
+  "impact3d": 2,
+  "standardsVerified": true,
+  "lessons": [
+    {
+      "id": "s2-s08-1",
+      "title": "합리적 선택",
+      "standard": {
+        "code": "9사(일사)08-01",
+        "text": "경제생활에서 합리적 선택의 필요성에 대해 검토하고, 비용과 편익을 고려한 합리적 선택 방안을 탐색한다.",
+        "verified": true
+      },
+      "mission": "최근에 산 물건 하나를 찍고, 그 대신 포기한 선택(기회비용)을 주석으로 적어 보자.",
+      "concepts": [],
+      "quiz": []
+    },
+    {
+      "id": "s2-s08-2",
+      "title": "자산과 신용 관리",
+      "standard": {
+        "code": "9사(일사)08-02",
+        "text": "일생 동안 이루어지는 경제생활을 분석하고, 안정적인 금융 생활을 위한 자산 및 신용 관리 방안을 계획한다.",
+        "verified": true
+      },
+      "lab": {
+        "type": "planned",
+        "params": {
+          "name": "복리·생애 자산 곡선"
+        }
+      },
+      "concepts": [],
+      "quiz": []
+    },
+    {
+      "id": "s2-s08-3",
+      "title": "기업의 역할과 책임",
+      "standard": {
+        "code": "9사(일사)08-03",
+        "text": "시장경제에서 기업의 역할과 사회적 책임을 설명하고, 우리 사회에 필요한 기업가 정신에 대해 토의한다.",
+        "verified": true
+      },
+      "concepts": [],
+      "quiz": []
+    }
+  ]
+}

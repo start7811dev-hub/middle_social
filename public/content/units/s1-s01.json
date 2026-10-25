@@ -1,0 +1,47 @@
+{
+  "id": "s1-s01",
+  "book": "s1",
+  "area": "일반사회",
+  "no": 1,
+  "title": "인간과 사회생활",
+  "icon": "people",
+  "accent": "primary",
+  "impact3d": 1,
+  "standardsVerified": true,
+  "lessons": [
+    {
+      "id": "s1-s01-1",
+      "title": "사회화와 자아 정체성",
+      "standard": {
+        "code": "9사(일사)01-01",
+        "text": "사회화의 의미를 일상생활의 사례를 들어 설명하고, 사회화 과정에서 형성되는 자아 정체성에 대해 성찰한다.",
+        "verified": true
+      },
+      "concepts": [],
+      "quiz": []
+    },
+    {
+      "id": "s1-s01-2",
+      "title": "지위와 역할, 역할 갈등",
+      "standard": {
+        "code": "9사(일사)01-02",
+        "text": "사회적 지위와 역할의 의미를 설명하고, 일상생활에서 나타나는 역할 갈등 사례와 대응 방안을 탐색한다.",
+        "verified": true
+      },
+      "mission": "오늘 내가 가진 지위(학생, 자녀, 동아리 부원 등)가 드러나는 장면을 하나 찍어 보자.",
+      "concepts": [],
+      "quiz": []
+    },
+    {
+      "id": "s1-s01-3",
+      "title": "갈등과 차별",
+      "standard": {
+        "code": "9사(일사)01-03",
+        "text": "우리 사회에 나타나는 다양한 갈등과 차별의 사례를 조사하고, 이에 대처하는 시민의 자질에 대해 토의한다.",
+        "verified": true
+      },
+      "concepts": [],
+      "quiz": []
+    }
+  ]
+}

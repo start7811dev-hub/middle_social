@@ -1,0 +1,52 @@
+{
+  "id": "s2-s10",
+  "book": "s2",
+  "area": "일반사회",
+  "no": 10,
+  "title": "우리나라 경제와 세계화",
+  "icon": "trade",
+  "accent": "orange",
+  "impact3d": 2,
+  "standardsVerified": false,
+  "lessons": [
+    {
+      "id": "s2-s10-1",
+      "title": "국민 경제와 경제 성장",
+      "standard": {
+        "code": null,
+        "text": null,
+        "verified": false
+      },
+      "concepts": [],
+      "quiz": []
+    },
+    {
+      "id": "s2-s10-2",
+      "title": "물가와 실업",
+      "standard": {
+        "code": null,
+        "text": null,
+        "verified": false
+      },
+      "concepts": [],
+      "quiz": []
+    },
+    {
+      "id": "s2-s10-3",
+      "title": "국제 거래와 환율",
+      "standard": {
+        "code": null,
+        "text": null,
+        "verified": false
+      },
+      "lab": {
+        "type": "planned",
+        "params": {
+          "name": "환율 변동 시뮬레이션"
+        }
+      },
+      "concepts": [],
+      "quiz": []
+    }
+  ]
+}

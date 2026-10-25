@@ -1,0 +1,53 @@
+{
+  "id": "s1-s05",
+  "book": "s1",
+  "area": "일반사회",
+  "no": 5,
+  "title": "일상생활과 법",
+  "icon": "scale",
+  "accent": "green",
+  "impact3d": 2,
+  "standardsVerified": true,
+  "lessons": [
+    {
+      "id": "s1-s05-1",
+      "title": "법의 의미와 목적",
+      "standard": {
+        "code": "9사(일사)05-01",
+        "text": "법의 의미와 특징을 설명하고, 일상생활에서 접하는 법의 사례를 통해 법의 목적을 도출한다.",
+        "verified": true
+      },
+      "concepts": [],
+      "quiz": []
+    },
+    {
+      "id": "s1-s05-2",
+      "title": "다양한 법과 사회법",
+      "standard": {
+        "code": "9사(일사)05-02",
+        "text": "우리의 일상을 규율하는 다양한 법을 탐색하고, 국내외 사례를 통해 사회법이 필요한 이유에 대해 토의한다.",
+        "verified": true
+      },
+      "mission": "생활 속에서 법이 적용되는 장면(교통 표지판, 영수증, 근로 안내문 등) 3개를 찾아 찍어 보자.",
+      "concepts": [],
+      "quiz": []
+    },
+    {
+      "id": "s1-s05-3",
+      "title": "재판과 공정성",
+      "standard": {
+        "code": "9사(일사)05-03",
+        "text": "재판의 의미와 종류를 설명하고, 공정한 재판의 중요성에 대해 토의한다.",
+        "verified": true
+      },
+      "lab": {
+        "type": "planned",
+        "params": {
+          "name": "3D 법정과 심급 제도"
+        }
+      },
+      "concepts": [],
+      "quiz": []
+    }
+  ]
+}

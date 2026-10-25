@@ -1,0 +1,52 @@
+{
+  "id": "s2-s12",
+  "book": "s2",
+  "area": "일반사회",
+  "no": 12,
+  "title": "사회 변동과 사회문제",
+  "icon": "wave",
+  "accent": "coral",
+  "impact3d": 3,
+  "standardsVerified": false,
+  "lessons": [
+    {
+      "id": "s2-s12-1",
+      "title": "사회 변동의 양상",
+      "standard": {
+        "code": null,
+        "text": null,
+        "verified": false
+      },
+      "concepts": [],
+      "quiz": []
+    },
+    {
+      "id": "s2-s12-2",
+      "title": "저출산·고령화",
+      "standard": {
+        "code": null,
+        "text": null,
+        "verified": false
+      },
+      "lab": {
+        "type": "planned",
+        "params": {
+          "name": "한국 인구 피라미드 1960→2070"
+        }
+      },
+      "concepts": [],
+      "quiz": []
+    },
+    {
+      "id": "s2-s12-3",
+      "title": "사회문제의 해결",
+      "standard": {
+        "code": null,
+        "text": null,
+        "verified": false
+      },
+      "concepts": [],
+      "quiz": []
+    }
+  ]
+}

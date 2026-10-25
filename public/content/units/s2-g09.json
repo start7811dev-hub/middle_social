@@ -1,0 +1,39 @@
+{
+  "id": "s2-g09",
+  "book": "s2",
+  "area": "지리",
+  "no": 9,
+  "title": "중부 지역",
+  "icon": "city",
+  "accent": "magenta",
+  "impact3d": 2,
+  "standardsVerified": false,
+  "lessons": [
+    {
+      "id": "s2-g09-1",
+      "title": "수도권의 집중과 공간 변화",
+      "standard": {
+        "code": null,
+        "text": null,
+        "verified": false
+      },
+      "concepts": [],
+      "quiz": []
+    },
+    {
+      "id": "s2-g09-2",
+      "title": "강원·충청 지역의 변화",
+      "standard": {
+        "code": null,
+        "text": null,
+        "verified": false
+      },
+      "concepts": [],
+      "quiz": []
+    }
+  ],
+  "geo": {
+    "lat": 37.5,
+    "lng": 127
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "id": "s1-s06",
+  "book": "s1",
+  "area": "일반사회",
+  "no": 6,
+  "title": "인권과 기본권",
+  "icon": "shield",
+  "accent": "coral",
+  "impact3d": 1,
+  "standardsVerified": true,
+  "lessons": [
+    {
+      "id": "s1-s06-1",
+      "title": "인권과 기본권의 종류",
+      "standard": {
+        "code": "9사(일사)06-01",
+        "text": "일상생활에서 인권이 침해되는 사례를 조사하고, 우리 헌법에 보장된 기본권의 종류를 탐색한다.",
+        "verified": true
+      },
+      "concepts": [],
+      "quiz": []
+    },
+    {
+      "id": "s1-s06-2",
+      "title": "기본권 제한과 구제",
+      "standard": {
+        "code": "9사(일사)06-02",
+        "text": "기본권 제한의 요건과 한계가 헌법에 명시된 이유를 토의하고, 기본권 침해 시 구제 방법을 조사한다.",
+        "verified": true
+      },
+      "concepts": [],
+      "quiz": []
+    },
+    {
+      "id": "s1-s06-3",
+      "title": "근로자의 권리",
+      "standard": {
+        "code": "9사(일사)06-03",
+        "text": "근로자에게 보장되는 권리를 조사하고, 이러한 권리의 침해에 대처하는 국가와 시민의 노력에 대해 토의한다.",
+        "verified": true
+      },
+      "concepts": [],
+      "quiz": []
+    }
+  ]
+}

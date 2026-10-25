@@ -1,0 +1,46 @@
+{
+  "id": "s2-s07",
+  "book": "s2",
+  "area": "일반사회",
+  "no": 7,
+  "title": "헌법과 국가기관",
+  "icon": "building",
+  "accent": "primary",
+  "impact3d": 2,
+  "standardsVerified": true,
+  "lessons": [
+    {
+      "id": "s2-s07-1",
+      "title": "정부 형태와 행정부",
+      "standard": {
+        "code": "9사(일사)07-01",
+        "text": "우리나라의 정부 형태를 설명하고, 대통령과 행정부의 역할을 탐색한다.",
+        "verified": true
+      },
+      "concepts": [],
+      "quiz": []
+    },
+    {
+      "id": "s2-s07-2",
+      "title": "국회와 입법",
+      "standard": {
+        "code": "9사(일사)07-02",
+        "text": "국회에서 법률이 만들어지는 사례를 탐색하고, 입법기관으로서 국회의 역할을 조사한다.",
+        "verified": true
+      },
+      "concepts": [],
+      "quiz": []
+    },
+    {
+      "id": "s2-s07-3",
+      "title": "법원과 헌법재판소",
+      "standard": {
+        "code": "9사(일사)07-03",
+        "text": "사법기관으로서 법원의 역할을 검토하고, 헌법재판소의 성격에 대해 토의한다.",
+        "verified": true
+      },
+      "concepts": [],
+      "quiz": []
+    }
+  ]
+}
