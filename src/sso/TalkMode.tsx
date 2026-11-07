@@ -5,6 +5,7 @@ import { Icon } from "../components/Icon";
 import { SsoCharacter, type SsoMood } from "./SsoCharacter";
 import { getLastLesson, loadSettings, saveSettings } from "./bus";
 import { askSso, type Mode, type SignedTurn } from "./transport";
+import type { SsoResponse } from "../../shared/pipeline";
 import { canListen, canSpeak, listen, speak, stopSpeaking } from "./voice";
 
 /* ─────────────────────────────────────────────
@@ -57,9 +58,9 @@ export function TalkMode({ cat, mode, onClose }: { cat: Catalog; mode: Mode | nu
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ear, crisis]);
 
-  const sayOut = useCallback((t: string, then?: () => void) => {
+  const sayOut = useCallback((t: string, then?: () => void, sig?: string) => {
     if (!voiceOn) { setPhase("idle"); then?.(); return; }
-    speak(t, { onStart: () => setPhase("speaking"), onEnd: () => { setPhase("idle"); then?.(); } });
+    speak(t, { onStart: () => setPhase("speaking"), onEnd: () => { setPhase("idle"); then?.(); } }, { sig });
     setPhase("speaking");
   }, [voiceOn]);
 
@@ -76,7 +77,7 @@ export function TalkMode({ cat, mode, onClose }: { cat: Catalog; mode: Mode | nu
     const res = await askSso(mode ?? "offline", {
       turns, mode: "tutor", lessonId: lesson?.lessonId, context: ctx, allConcepts: [],
       lessonQuiz: l?.quiz ?? [], lessonSections: l?.sections ?? [], predictQ: l?.predict?.q,
-    }).catch(() => ({ kind: "error" as const, category: "study" as const, text: "앗, 잠깐 멈췄어. 다시 말해 줄래?" }));
+    }).catch((): SsoResponse => ({ kind: "error", category: "study", text: "앗, 잠깐 멈췄어. 다시 말해 줄래?" }));
     // 정상 답변일 때만 대화 기록에 남긴다 (전환·위기 안내된 질문은 다음 요청에 보내지 않음)
     turnsRef.current = res.kind === "answer"
       ? [...turnsRef.current, { role: "assistant", content: res.text, sig: res.sig }]
@@ -84,7 +85,7 @@ export function TalkMode({ cat, mode, onClose }: { cat: Catalog; mode: Mode | nu
     const isCrisis = res.kind === "crisis";
     setLines((x) => [...x, { role: "assistant", content: res.text, crisis: isCrisis }]);
     if (isCrisis) { setCrisis(true); setAutoListen(false); }
-    sayOut(res.text, () => { if (autoListenRef.current && !typingRef.current && !isCrisis) startListening(); });
+    sayOut(res.text, () => { if (autoListenRef.current && !typingRef.current && !isCrisis) startListening(); }, res.sig);
   }, [mode, lesson, ctx, l, sayOut, startListening]);
 
   const typingRef = useRef(typing);

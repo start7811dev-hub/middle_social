@@ -14,11 +14,20 @@ Vite 정적 앱 + `api/` 폴더의 Vercel 함수(쏘 서버)로 구성된다. �
    | `SSO_ACCESS_CODE` | 예: `class-2026` | 권장. 정하면 이 코드를 설정에 넣은 기기만 쏘와 대화할 수 있다 |
    | `SSO_MODEL` | `claude-sonnet-5-5` | 선택. 본 응답 모델 |
    | `SSO_GUARD_MODEL` | `claude-haiku-5-5` | 선택. 주제 분류 모델 |
-   | `SSO_RATE_PER_10MIN` | `20` | 선택. 기기(IP)당 10분 요청 한도 |
-4. Deploy. 빌드 과정에서 콘텐츠 검증 → 안전 테스트(190개) → 타입 검사 → 빌드가 차례로 돈다. 하나라도 실패하면 배포되지 않는다.
+   | `SSO_RATE_PER_10MIN` | `30` | 선택. 기기당 10분 요청 한도 |
+   | `SSO_TTS_PROVIDER` | `elevenlabs` | 선택. 쏘 전용 목소리 엔진 (`elevenlabs`·`clova`·`google`·`openai`). 없으면 기기 음성 |
+   | `ELEVENLABS_API_KEY` | `sk_…` | elevenlabs일 때. 권한은 Text to Speech만 |
+   | `ELEVENLABS_VOICE_ID` | Voice ID | elevenlabs일 때. Voice Library(Korean)나 Voice Design으로 고른 쏘 목소리 |
+   | `ELEVENLABS_MODEL` | `eleven_multilingual_v2` | 선택. 빠르고 싸게: `eleven_flash_v2_5` |
+   | `NCP_CLOVA_KEY_ID`·`NCP_CLOVA_KEY`·`CLOVA_SPEAKER` | | clova일 때 (화자 기본 `vdain`) |
+   | `GOOGLE_TTS_API_KEY`·`GOOGLE_TTS_VOICE` | | google일 때 (기본 `ko-KR-Neural2-A`) |
+   | `SSO_TTS_PER_10MIN` | `60` | 선택. 기기당 10분 음성 요청 한도 |
+4. Deploy. 빌드 과정에서 콘텐츠 검증 → 안전 테스트(205개) → 타입 검사 → 빌드가 차례로 돈다. 하나라도 실패하면 배포되지 않는다.
 
 ## 2. 확인
 - `https://<주소>/api/sso` 를 열면 `{"ok":true,"ai":true,...}` 가 보여야 한다.
+- `https://<주소>/api/tts` 를 열면 `{"enabled":true,"provider":"elevenlabs"}` 가 보여야 한다. 환경 변수를 바꾼 뒤에는 Redeploy.
+- 쏘 목소리는 서버가 서명한 쏘의 답, 서버에 있는 교과 본문, 짧고 필터를 통과한 문장만 읽는다 (아무 글이나 읽어 주는 공개 TTS가 되지 않게).
 - 앱 → 정보(설정)에서 '연결 상태'가 "Claude 연결됨 (쏘 서버)"인지 본다.
 - 실제 Claude로 안전 시험: `SSO_RATE_PER_10MIN=100` 을 잠시 설정하고
   ```

@@ -14,12 +14,14 @@ declare global {
 
 type SampleFn = ((input: string | Turn[], opts?: Record<string, unknown>) => Promise<{ text: string }>) | null;
 
-function serverUrl() {
+/** 쏘 서버의 API 주소 (Mac 앱처럼 주소를 모르면 null) */
+export function apiUrl(name: "sso" | "tts") {
   const base = loadSettings().server.trim().replace(/\/$/, "");
-  if (base) return `${base}/api/sso`;
+  if (base) return `${base}/api/${name}`;
   if (location.protocol === "app:" || location.protocol === "file:") return null; // Mac 앱: 서버 주소 설정 필요
-  return new URL("api/sso", location.href.split("#")[0]).toString();
+  return new URL(`api/${name}`, location.href.split("#")[0]).toString();
 }
+const serverUrl = () => apiUrl("sso");
 
 let sampleP: Promise<SampleFn> | null = null;
 function getSample(): Promise<SampleFn> {
@@ -50,6 +52,12 @@ export async function detectMode(): Promise<Mode> {
 /** 대화 기록 한 줄 — 서버가 준 서명(sig)을 함께 돌려보낸다 */
 export type SignedTurn = Turn & { sig?: string };
 
+/** 서버 요청에 붙이는 기기 표시·접근 코드 */
+export function ssoHeaders(): Record<string, string> {
+  const code = loadSettings().code;
+  return { "x-sso-device": deviceId(), ...(code ? { "x-sso-code": code } : {}) };
+}
+
 function deviceId() {
   try {
     let id = localStorage.getItem("sso.device");
@@ -75,11 +83,10 @@ export interface Ask {
 export async function askSso(mode: Mode, a: Ask): Promise<SsoResponse> {
   if (mode === "server") {
     const url = serverUrl()!;
-    const s = loadSettings();
     try {
       const r = await fetch(url, {
         method: "POST",
-        headers: { "content-type": "application/json", "x-sso-device": deviceId(), ...(s.code ? { "x-sso-code": s.code } : {}) },
+        headers: { "content-type": "application/json", ...ssoHeaders() },
         body: JSON.stringify({ turns: a.turns, mode: a.mode, lessonId: a.lessonId }),
         signal: AbortSignal.timeout(30000),
       });
