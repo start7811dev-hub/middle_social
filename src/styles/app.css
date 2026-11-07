@@ -619,3 +619,4 @@ h5, .t-h5 { font-size: var(--fs-h5); line-height: 1.5; font-weight: 600; }
 html { -webkit-text-size-adjust: 100%; }
 body { overscroll-behavior-y: none; }
 button, .chip, .term { touch-action: manipulation; }
+.settings .t-caption.warn { color: var(--orange); }

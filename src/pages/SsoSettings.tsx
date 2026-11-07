@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { loadSettings, saveSettings } from "../sso/bus";
 import { detectMode, type Mode } from "../sso/transport";
 import { SSO_COLORS } from "../sso/SsoSheet";
-import { canListen, canSpeak, serverVoice, speak } from "../sso/voice";
+import { canListen, canSpeak, onVoiceStatus, serverVoice, speak, voiceStatus, type VoiceStatus } from "../sso/voice";
 
 const LABEL: Record<Mode, string> = {
   server: "Claude 연결됨 (쏘 서버)",
@@ -15,6 +15,8 @@ export function SsoSettingsCard() {
   const [mode, setMode] = useState<Mode | null>(null);
   const [tts, setTts] = useState<string | null | undefined>(undefined);
   useEffect(() => { setMode(null); detectMode().then(setMode); setTts(undefined); serverVoice().then(setTts); }, [s.server, s.code]);
+  const [heard, setHeard] = useState<VoiceStatus | null>(voiceStatus());
+  useEffect(() => onVoiceStatus(setHeard), []);
   const sample = () => setTimeout(() => speak("안녕, 나 쏘야. 같이 사회 공부하자!"), 50);
   const set = (patch: Partial<typeof s>) => { const n = { ...s, ...patch }; setS(n); saveSettings(n); };
   return (
@@ -46,6 +48,11 @@ export function SsoSettingsCard() {
             </div>
           </div>
           <p className="t-caption">{tts === undefined ? "목소리 확인 중…" : tts ? "쏘 전용 목소리는 서버의 음성 엔진이 만들어요. 안 되면 기기 음성으로 바뀌어요." : "서버에 음성 엔진이 아직 없어서 기기 음성으로 읽어요. Mac·iPad는 설정 › 손쉬운 사용 › 읽기 및 말하기에서 한국어 '유나(향상됨)' 음성을 받으면 훨씬 자연스러워요."}</p>
+          {heard && (
+            <p className={"t-caption" + (heard.engine === "device" && tts && s.engine !== "device" ? " warn" : "")}>
+              방금 재생: {heard.engine === "server" ? `쏘 전용 목소리 (${tts ?? "서버"})` : `기기 음성${heard.reason ? ` — ${heard.reason}` : ""}`}
+            </p>
+          )}
           {(s.engine === "device" || !tts) && s.voice && (
             <div className="toggle-row">
               <span>기기 음성 높이</span>

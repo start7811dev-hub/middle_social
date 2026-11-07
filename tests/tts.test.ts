@@ -37,7 +37,9 @@ describe("POST /api/tts", () => {
     const [url, init] = f.mock.calls[0] as unknown as [string, RequestInit];
     expect(url).toContain("/v1/text-to-speech/sso-voice");
     expect((init.headers as Record<string, string>)["xi-api-key"]).toBe("el-key");
-    expect(JSON.parse(String(init.body)).model_id).toBe("eleven_multilingual_v2");
+    const sent = JSON.parse(String(init.body));
+    expect(sent.model_id).toBe("eleven_v4");
+    expect(sent.voice_settings).toBeUndefined(); // 저장된 목소리 기본값 사용
   });
 
   it("CLOVA 요청 형식 (form, 화자)", async () => {
@@ -92,9 +94,11 @@ describe("POST /api/tts", () => {
       expect((await POST(req({ text: "둘" }, h))).status).toBe(200);
       expect((await POST(req({ text: "셋" }, h))).status).toBe(429);
     });
-    it("엔진 오류는 502", async () => {
-      vi.stubGlobal("fetch", vi.fn(async () => new Response("bad", { status: 500 })));
-      expect((await POST(req({ text: "안녕" }))).status).toBe(502);
+    it("엔진 오류는 502 + 원인", async () => {
+      vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ detail: { status: "voice_not_found", message: "A voice with that ID does not exist" } }), { status: 404 })));
+      const r = await POST(req({ text: "안녕" }));
+      expect(r.status).toBe(502);
+      expect((await r.json()).detail).toBe("openai 404: A voice with that ID does not exist");
     });
   });
 });

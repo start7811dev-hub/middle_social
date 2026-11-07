@@ -111,15 +111,26 @@ const cache = new Map<string, string>(); // 같은 말은 다시 만들지 않�
 let seq = 0;
 let current: Handlers | null = null; // 지금 말하는 중인 쪽
 
-async function fetchAudio(text: string, o: SpeakOpts): Promise<string | null> {
+/** 방금 어떤 목소리로 읽었는지 — 설정 화면에서 보여 준다 (기기 음성으로 바뀐 이유 포함) */
+export interface VoiceStatus { engine: "server" | "device"; reason?: string }
+let lastStatus: VoiceStatus | null = null;
+const statusFns = new Set<(s: VoiceStatus) => void>();
+export const voiceStatus = () => lastStatus;
+export function onVoiceStatus(fn: (s: VoiceStatus) => void) { statusFns.add(fn); return () => { statusFns.delete(fn); }; }
+function report(s: VoiceStatus) { lastStatus = s; statusFns.forEach((f) => f(s)); }
+
+async function fetchAudio(text: string, o: SpeakOpts): Promise<string> {
   const key = o.section ? `sec:${o.section.lessonId}:${o.section.index}` : text;
   const hit = cache.get(key);
   if (hit) return hit;
   const url = apiUrl("tts");
-  if (!url) return null;
+  if (!url) throw new Error("서버 주소 없음");
   const body = o.section ? { lessonId: o.section.lessonId, section: o.section.index } : { text: text.replace(/\s+/g, " ").trim(), sig: o.sig };
   const r = await fetch(url, { method: "POST", headers: { "content-type": "application/json", ...ssoHeaders() }, body: JSON.stringify(body), signal: AbortSignal.timeout(20000) });
-  if (!r.ok || !(r.headers.get("content-type") || "").includes("audio")) return null;
+  if (!r.ok || !(r.headers.get("content-type") || "").includes("audio")) {
+    const j = await r.json().catch(() => ({}));
+    throw new Error(j.detail || j.error || `서버 ${r.status}`);
+  }
   const src = URL.createObjectURL(await r.blob());
   cache.set(key, src);
   if (cache.size > 40) { const [k, v] = cache.entries().next().value as [string, string]; URL.revokeObjectURL(v); cache.delete(k); }
@@ -132,20 +143,25 @@ export function speak(text: string, h: Handlers = {}, o: SpeakOpts = {}) {
   current = h;
   let ended = false;
   const done = () => { if (!ended && my === seq) { ended = true; current = null; h.onEnd?.(); } };
-  const fallback = () => { if (my === seq && !ended) deviceSpeak(text, { onStart: h.onStart, onEnd: done }); };
-  if (loadSettings().engine === "device") { fallback(); return; }
+  const fallback = (reason?: string) => {
+    if (my !== seq || ended) return;
+    report({ engine: "device", reason });
+    deviceSpeak(text, { onStart: h.onStart, onEnd: done });
+  };
+  if (loadSettings().engine === "device") { fallback("설정에서 기기 음성 선택"); return; }
 
   (async () => {
-    if (!(await serverVoice())) return fallback();
-    const src = await fetchAudio(text, o).catch(() => null);
+    if (!(await serverVoice())) return fallback("서버에 음성 엔진 없음");
+    let src: string;
+    try { src = await fetchAudio(text, o); } catch (e) { return fallback((e as Error).message || "음성 요청 실패"); }
     if (my !== seq) return; // 그새 다른 말을 시작했으면 버린다
     const p = getPlayer();
-    if (!src || !p) return fallback();
-    p.onplaying = () => { if (my === seq) h.onStart?.(); };
+    if (!p) return fallback("오디오 재생 불가");
+    p.onplaying = () => { if (my === seq) { report({ engine: "server" }); h.onStart?.(); } };
     p.onended = done;
-    p.onerror = () => { if (my === seq) fallback(); };
+    p.onerror = () => fallback("오디오 파일 재생 실패");
     p.src = src;
-    p.play().catch(() => fallback()); // 소리 허락을 못 받았으면 기기 음성으로
+    p.play().catch(() => fallback("브라우저가 소리 재생을 막음 — 화면을 한 번 누른 뒤 다시")); // 소리 허락을 못 받았으면 기기 음성으로
   })();
 }
 
