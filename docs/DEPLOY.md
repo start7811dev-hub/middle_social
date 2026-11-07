@@ -18,7 +18,7 @@ Vite 정적 앱 + `api/` 폴더의 Vercel 함수(쏘 서버)로 구성된다. �
    | `SSO_TTS_PROVIDER` | `elevenlabs` | 선택. 쏘 전용 목소리 엔진 (`elevenlabs`·`clova`·`google`·`openai`). 없으면 기기 음성 |
    | `ELEVENLABS_API_KEY` | `sk_…` | elevenlabs일 때. 권한은 Text to Speech만 |
    | `ELEVENLABS_VOICE_ID` | Voice ID | elevenlabs일 때. Voice Library(Korean)나 Voice Design으로 고른 쏘 목소리 |
-   | `ELEVENLABS_MODEL` | `eleven_multilingual_v2` | 선택. 빠르고 싸게: `eleven_flash_v2_5` |
+   | `ELEVENLABS_MODEL` | `eleven_v4` | 선택. 비우면 eleven_v4 (Voice Design 미리듣기와 같은 모델). 목소리 설정은 일레븐랩스에 저장된 값을 따른다 |
    | `NCP_CLOVA_KEY_ID`·`NCP_CLOVA_KEY`·`CLOVA_SPEAKER` | | clova일 때 (화자 기본 `vdain`) |
    | `GOOGLE_TTS_API_KEY`·`GOOGLE_TTS_VOICE` | | google일 때 (기본 `ko-KR-Neural2-A`) |
    | `SSO_TTS_PER_10MIN` | `60` | 선택. 기기당 10분 음성 요청 한도 |

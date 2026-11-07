@@ -6,7 +6,8 @@
    SSO_TTS_PROVIDER = elevenlabs | clova | google | openai
 
    elevenlabs  ELEVENLABS_API_KEY, ELEVENLABS_VOICE_ID(필수 — 보이스 라이브러리나 Voice Design으로 만든 쏘 목소리),
-               ELEVENLABS_MODEL(기본 eleven_multilingual_v2)
+               ELEVENLABS_MODEL(기본 eleven_v4 — Voice Design으로 만든 목소리와 같은 모델이라 미리듣기와 가장 비슷)
+               보이스 설정(안정성 등)은 일레븐랩스에 저장된 그 목소리의 기본값을 그대로 쓴다
    clova       NCP_CLOVA_KEY_ID, NCP_CLOVA_KEY, CLOVA_SPEAKER(기본 vdain), CLOVA_SPEED(기본 0), CLOVA_PITCH(기본 0), CLOVA_EMOTION(기본 0)
    google      GOOGLE_TTS_API_KEY, GOOGLE_TTS_VOICE(기본 ko-KR-Neural2-A)
    openai      OPENAI_API_KEY, OPENAI_TTS_VOICE(기본 coral) — 2027-01-06 종료 예정 모델이라 비권장
@@ -34,8 +35,7 @@ export function provider(): { name: string; synth: Synth } | null {
           method: "POST",
           headers: { "xi-api-key": env("ELEVENLABS_API_KEY")!, "content-type": "application/json", accept: "audio/mpeg" },
           body: JSON.stringify({
-            text, model_id: env("ELEVENLABS_MODEL") || "eleven_multilingual_v2",
-            voice_settings: { stability: 0.5, similarity_boost: 0.75, style: 0.25, use_speaker_boost: true },
+            text, model_id: env("ELEVENLABS_MODEL") || "eleven_v4",
           }),
           signal: T(15000),
         }),
@@ -122,13 +122,13 @@ export async function POST(req: Request) {
 
   try {
     const r = await p.synth(text);
-    if (!r.ok) return json(req, { error: "목소리를 만들지 못했어." }, 502);
+    if (!r.ok) return json(req, { error: "목소리를 만들지 못했어.", detail: await upstreamError(p.name, r) }, 502);
     return new Response(await r.arrayBuffer(), {
       status: 200,
       headers: { "content-type": "audio/mpeg", "cache-control": "private, max-age=86400", ...cors(req) },
     });
-  } catch {
-    return json(req, { error: "목소리를 만들지 못했어." }, 502);
+  } catch (e) {
+    return json(req, { error: "목소리를 만들지 못했어.", detail: `${p.name}: ${(e as Error)?.name === "TimeoutError" ? "시간 초과" : "연결 실패"}` }, 502);
   }
 }
 
@@ -139,4 +139,14 @@ export function sectionText(lessonId: unknown, section: unknown): string | null 
   const sec = unit?.lessons?.find((l: { id: string }) => l.id === lessonId)?.sections?.[section];
   if (!sec?.text) return null;
   return `${sec.title}. ${sec.text}`.replace(/\s+/g, " ").trim().slice(0, 1500);
+}
+
+/** 음성 엔진 오류를 짧게 (설정 화면 진단용 — 키 값은 들어가지 않는다) */
+async function upstreamError(name: string, r: Response) {
+  let msg = "";
+  try {
+    const j = (await r.json()) as { detail?: { message?: string; status?: string } | string; error?: { message?: string } };
+    msg = typeof j.detail === "string" ? j.detail : j.detail?.message || j.detail?.status || j.error?.message || "";
+  } catch { /* 본문 없음 */ }
+  return `${name} ${r.status}${msg ? `: ${String(msg).slice(0, 160)}` : ""}`;
 }
