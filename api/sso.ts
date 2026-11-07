@@ -14,10 +14,10 @@
    SSO_DAILY_LIMIT         인스턴스당 하루 요청 상한 (기본 3000)
 */
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
-import { runSso, type LLM } from "../shared/pipeline";
-import { LIMITS, type Turn } from "../shared/guard";
-import { LESSON_ID, contextFromUnit } from "../shared/context";
-import { UNITS } from "../shared/content.gen";
+import { runSso, type LLM } from "../shared/pipeline.js";
+import { LIMITS, type Turn } from "../shared/guard.js";
+import { LESSON_ID, contextFromUnit } from "../shared/context.js";
+import { UNITS } from "../shared/content.gen.js";
 
 export const config = { maxDuration: 30 };
 

@@ -2,7 +2,7 @@ import {
   CLASSIFIER_SYSTEM, CRISIS_REPLY, FALLBACK_REPLY, SOFT_HELP, classifierInput, cleanHistory, parseCategory, parseQuiz,
   postfilter, prefilter, quizPrompt, redirectReply, sanitizeTurns, ssoSystemPrompt, tutorPrompt,
   type GuardCategory, type LessonContext, type QuizItem, type Turn,
-} from "./guard";
+} from "./guard.js";
 
 /** 모델 호출부만 바꿔 끼운다 — 서버는 Anthropic API, 아티팩트는 sample, 테스트는 모의 함수. */
 export interface LLM {
