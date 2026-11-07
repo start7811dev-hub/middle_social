@@ -1,5 +1,6 @@
 import type { Catalog } from "../data/types";
 import { TopBar } from "../components/Shell";
+import { SsoSettingsCard } from "./SsoSettings";
 
 export function About({ cat }: { cat: Catalog }) {
   const m = cat.manifest;
@@ -8,7 +9,9 @@ export function About({ cat }: { cat: Catalog }) {
   return (
     <div className="page">
       <TopBar />
-      <h1 className="h-light">콘텐츠 정보</h1>
+      <h1 className="h-light">설정</h1>
+      <SsoSettingsCard />
+      <h2 className="h-sub">콘텐츠 정보</h2>
       <div className="about-grid">
         <div className="card"><div className="eyebrow">교육과정</div><h3>{m.curriculum}</h3><p className="hint">{m.source}</p></div>
         <div className="card"><div className="eyebrow">콘텐츠 버전</div><h3 className="num">{m.contentVersion}</h3><p className="hint">단원 {m.units.length} · 학습 {lessons.length}</p></div>

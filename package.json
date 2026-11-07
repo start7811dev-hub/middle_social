@@ -5,11 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run validate && tsc -b && vite build",
+    "build": "npm run validate && vitest run && npm run typecheck && vite build",
     "preview": "vite preview",
-    "validate": "node scripts/validate-content.mjs",
+    "validate": "node scripts/gen-server-content.mjs && node scripts/validate-content.mjs",
     "mac:dev": "npm run build && electron .",
-    "mac:build": "npm run build && electron-builder --mac dmg zip --arm64 --x64"
+    "mac:build": "npm run build && electron-builder --mac dmg zip --arm64 --x64",
+    "test": "vitest run",
+    "typecheck": "tsc -b && tsc -p tsconfig.server.json",
+    "redteam": "node scripts/redteam.mjs"
   },
   "dependencies": {
     "d3-geo": "^3.1.1",
@@ -25,6 +28,7 @@
   },
   "devDependencies": {
     "@types/d3-geo": "^3.1.0",
+    "@types/node": "^20.17.9",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@types/three": "^0.169.0",
@@ -34,7 +38,8 @@
     "electron": "^33.2.1",
     "electron-builder": "^25.1.8",
     "typescript": "^5.6.3",
-    "vite": "^5.4.11"
+    "vite": "^5.4.11",
+    "vitest": "^2.1.8"
   },
   "productName": "Social Atlas",
   "description": "중학 사회 3D 학습 프로그램",

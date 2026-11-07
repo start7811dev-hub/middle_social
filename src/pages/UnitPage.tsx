@@ -6,6 +6,8 @@ import { useUser } from "../data/UserContext";
 import { Icon } from "../components/Icon";
 import { TopBar } from "../components/Shell";
 import { LabView } from "../labs/registry";
+import { ssoEmit } from "../sso/bus";
+import { ActiveReader } from "./ActiveReader";
 
 export function UnitPage({ cat }: { cat: Catalog }) {
   const { unitId, lessonId } = useParams();
@@ -62,18 +64,33 @@ export function UnitPage({ cat }: { cat: Catalog }) {
 function LessonBody({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
   const { toggleScrap, isScrapped, data } = useUser();
   const pred = data.predictions[lesson.id];
+  const hasLab = !!lesson.lab && lesson.lab.type !== "planned";
+  // 쏘에게 지금 어떤 학습을 보는지 알린다
+  useEffect(() => {
+    ssoEmit({ type: "lesson", unitId: unit.id, lessonId: lesson.id, title: lesson.title, hasPredict: !!lesson.predict,
+      predicted: !!data.predictions[lesson.id], concepts: lesson.concepts });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lesson.id]);
   return (
     <section className="lesson-body">
-      <div className={"stage" + (lesson.predict && !pred ? " gated" : "")}>
-        {lesson.predict && !pred && <PredictGate lesson={lesson} />}
-        {lesson.lab ? <LabView lab={lesson.lab} accent={unit.accent} /> : (
-          <div className="stage-empty">
+      {hasLab ? (
+        <div className={"stage" + (lesson.predict && !pred ? " gated" : "")}>
+          {lesson.predict && !pred && <PredictGate lesson={lesson} />}
+          <LabView lab={lesson.lab!} accent={unit.accent} />
+        </div>
+      ) : (
+        <>
+          {lesson.predict && !pred && <div className="stage-inline"><PredictGate lesson={lesson} /></div>}
+          <div className="lesson-hero">
             <span className={`tile tile-lg accent-${unit.accent}`}><Icon name={unit.icon} size={28} /></span>
-            <h3>{lesson.title}</h3>
-            <p>이 학습에는 아직 3D 랩이 연결되지 않았습니다.</p>
+            <div>
+              <div className="eyebrow">{lesson.standard.code ?? unit.title}</div>
+              <h2 className="lesson-hero-title">{lesson.title}</h2>
+              {lesson.lab?.type === "planned" && <span className="chip-static accent-primary"><Icon name="cube" size={12} /> 3D 랩 제작 예정 · {String(lesson.lab.params?.name ?? "")}</span>}
+            </div>
           </div>
-        )}
-      </div>
+        </>
+      )}
 
       {lesson.predict && pred && (
         <div className={"card reveal-card " + (pred.right ? "ok" : "bad")}>
@@ -87,8 +104,6 @@ function LessonBody({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
         </div>
       )}
 
-      {lesson.mission && <Mission lesson={lesson} />}
-
       <div className="card standard-card">
         <div className="card-head">
           <span className="eyebrow">성취기준 {lesson.standard.code && <b className="code">[{lesson.standard.code}]</b>}</span>
@@ -101,6 +116,16 @@ function LessonBody({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
         </div>
         <p className="standard-text">{lesson.standard.text ?? "성취기준 원문 대조 후 입력 예정입니다."}</p>
       </div>
+
+      <div className="talk-cta">
+        <div>
+          <b>읽기 대신 쏘랑 말로 공부할래?</b>
+          <span className="t-caption">쏘가 설명하고 묻고, 너는 말로 대답해. 마이크가 없으면 글자로도 돼.</span>
+        </div>
+        <button className="btn" onClick={() => ssoEmit({ type: "talk" })}>말로 공부하기</button>
+      </div>
+
+      <ActiveReader lesson={lesson} />
 
       {lesson.concepts.length > 0 && (
         <div className="concepts">
@@ -118,6 +143,8 @@ function LessonBody({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
           ))}
         </div>
       )}
+
+      {lesson.mission && <Mission lesson={lesson} />}
     </section>
   );
 }
@@ -161,6 +188,7 @@ function Quiz({ lesson }: { unit: Unit; lesson: Lesson }) {
     if (picked === null || revealed) return;
     setConf(c);
     logAnswer(c, picked === q.answer);
+    ssoEmit({ type: "answer", right: picked === q.answer, confidence: c, q: q.q, picked: q.choices[picked], correct: q.choices[q.answer] });
     if (picked === q.answer) {
       setScore((s) => s + 1);
       if (c === 1) addWrong(lesson.id, q.id, picked, 1); // 찍어서 맞힌 문제도 복습 카드로
@@ -173,6 +201,7 @@ function Quiz({ lesson }: { unit: Unit; lesson: Lesson }) {
     if (i + 1 >= items.length) {
       const total = items.length, correct = score;
       update((d) => ({ ...d, progress: { ...d.progress, [lesson.id]: { done: true, correct, total, at: Date.now() } } }));
+      ssoEmit({ type: "quiz-done", score: correct, total, hasMission: !!lesson.mission });
     }
     setI(i + 1); setPicked(null); setConf(null);
   };
@@ -223,8 +252,10 @@ function Quiz({ lesson }: { unit: Unit; lesson: Lesson }) {
 function PredictGate({ lesson }: { lesson: Lesson }) {
   const { update } = useUser();
   const p = lesson.predict!;
-  const choose = (k: number) =>
+  const choose = (k: number) => {
     update((d) => ({ ...d, predictions: { ...d.predictions, [lesson.id]: { picked: k, right: k === p.answer, at: Date.now() } } }));
+    ssoEmit({ type: "predict", right: k === p.answer });
+  };
   return (
     <div className="gate">
       <div className="gate-card">
@@ -253,6 +284,7 @@ function Mission({ lesson }: { lesson: Lesson }) {
       photos: [{ id: newId(), lessonId: lesson.id, dataUrl, caption: "현장 미션", at: Date.now() }, ...d.photos],
       missions: { ...d.missions, [lesson.id]: Date.now() },
     }));
+    ssoEmit({ type: "mission-done" });
     e.target.value = "";
   };
   return (

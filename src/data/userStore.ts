@@ -23,7 +23,7 @@ export interface Predictions { [lessonId: string]: { picked: number; right: bool
 /** 확신도 보정 기록 — 확신(1~3)별 정답/시도 */
 export interface Calibration { [conf: string]: { right: number; total: number } }
 
-export interface UserData { wrong: WrongNote[]; scraps: Scrap[]; notes: Annotation[]; photos: Photo[]; progress: Progress; predictions: Predictions; calibration: Calibration; missions: Record<string, number> }
+export interface UserData { wrong: WrongNote[]; scraps: Scrap[]; notes: Annotation[]; photos: Photo[]; progress: Progress; predictions: Predictions; calibration: Calibration; missions: Record<string, number>; reading?: Record<string, number> }
 export const emptyUser = (): UserData => ({ wrong: [], scraps: [], notes: [], photos: [], progress: {}, predictions: {}, calibration: {}, missions: {} });
 
 export interface UserStore { load(): Promise<UserData>; save(d: UserData): Promise<void> }

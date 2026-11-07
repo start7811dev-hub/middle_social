@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { Catalog, Unit } from "../data/types";
 import { unitList } from "../data/content";
@@ -7,6 +7,7 @@ import { Ring, TopBar } from "../components/Shell";
 import { Icon } from "../components/Icon";
 import { GlobeScene, type GlobePin } from "../labs/GlobeScene";
 import { isDue } from "../data/userStore";
+import { ssoEmit } from "../sso/bus";
 
 const BOOK_TABS = [{ id: "all", label: "전체" }, { id: "s1", label: "사회①" }, { id: "s2", label: "사회②" }];
 const KOREA = ["s2-g07", "s2-g08", "s2-g09", "s2-g10", "s2-g11"];
@@ -46,6 +47,7 @@ export function Home({ cat }: { cat: Catalog }) {
   const geoAll = all.filter((u) => u.area === "지리");
   const lit = geoAll.reduce((a, u) => a + unitProgress(u, data.progress).ratio, 0) / Math.max(1, geoAll.length);
   const due = data.wrong.filter((w) => isDue(w)).length;
+  useEffect(() => { const t = window.setTimeout(() => ssoEmit({ type: "home", due }), 1500); return () => window.clearTimeout(t); }, [due]);
   const sure = data.calibration["3"];
 
   const society = units.filter((u) => u.area === "일반사회");

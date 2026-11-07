@@ -1,0 +1,54 @@
+import { useEffect, useState } from "react";
+import { loadSettings, saveSettings } from "../sso/bus";
+import { detectMode, type Mode } from "../sso/transport";
+import { SSO_COLORS } from "../sso/SsoSheet";
+import { canListen, canSpeak, speak } from "../sso/voice";
+
+const LABEL: Record<Mode, string> = {
+  server: "Claude 연결됨 (쏘 서버)",
+  sample: "Claude 연결됨 (claude.ai 미리보기)",
+  offline: "오프라인 — 앱 속 개념 찾기만 가능",
+};
+
+export function SsoSettingsCard() {
+  const [s, setS] = useState(loadSettings());
+  const [mode, setMode] = useState<Mode | null>(null);
+  useEffect(() => { setMode(null); detectMode().then(setMode); }, [s.server, s.code]);
+  const set = (patch: Partial<typeof s>) => { const n = { ...s, ...patch }; setS(n); saveSettings(n); };
+  return (
+    <div className="card settings">
+      <div className="eyebrow">쏘 설정</div>
+      <div className="toggle-row"><span>연결 상태</span><b>{mode ? LABEL[mode] : "확인 중…"}</b></div>
+      <label>쏘 서버 주소 (Mac 앱이나 다른 주소에서 쓸 때)
+        <input type="text" placeholder="예: https://middle-social.vercel.app" value={s.server} onChange={(e) => set({ server: e.target.value.trim() })} />
+      </label>
+      <label>접근 코드 (서버에 SSO_ACCESS_CODE를 정했다면)
+        <input type="password" value={s.code} onChange={(e) => set({ code: e.target.value.trim() })} />
+      </label>
+      <div className="toggle-row">
+        <span>쏘 색</span>
+        <div className="swatches">
+          {SSO_COLORS.map((c) => (
+            <button key={c.id} title={c.label} className={"swatch" + (s.color === c.hex ? " on" : "")} style={{ background: c.hex }} onClick={() => set({ color: c.hex })} />
+          ))}
+        </div>
+      </div>
+      {canSpeak() && (
+        <div className="toggle-row">
+          <span>쏘 목소리</span>
+          <div className="swatches">
+            {([["soft", "차분"], ["sso", "쏘 기본"], ["high", "높게"]] as const).map(([k, label]) => (
+              <button key={k} className={"chip" + (s.pitch === k ? " on" : "")} onClick={() => { set({ pitch: k, voice: true }); setTimeout(() => speak("안녕, 나 쏘야. 같이 사회 공부하자!"), 50); }}>{label}</button>
+            ))}
+            <button className={"chip" + (!s.voice ? " on" : "")} onClick={() => set({ voice: !s.voice })}>{s.voice ? "끄기" : "꺼짐"}</button>
+          </div>
+        </div>
+      )}
+      <div className="toggle-row"><span>말로 대답하기(음성 인식)</span><b>{canListen() ? "이 기기에서 사용 가능" : "이 기기에서는 글자로 대답"}</b></div>
+      <label className="toggle-row" style={{ flexDirection: "row" }}>
+        <span>조용히 모드 — 말풍선 참견 끄기 (표정은 그대로)</span>
+        <input type="checkbox" checked={s.quiet} onChange={(e) => set({ quiet: e.target.checked })} />
+      </label>
+    </div>
+  );
+}

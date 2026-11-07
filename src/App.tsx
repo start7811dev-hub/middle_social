@@ -11,6 +11,8 @@ import { WrongNotes } from "./pages/WrongNotes";
 import { Scraps } from "./pages/Scraps";
 import { About } from "./pages/About";
 import { Review } from "./pages/Review";
+import { SsoSheet } from "./sso/SsoSheet";
+import { SsoAgent } from "./sso/SsoAgent";
 
 export function App() {
   const [cat, setCat] = useState<Catalog | null>(null);
@@ -26,12 +28,14 @@ export function App() {
             <Route path="/" element={<Home cat={cat} />} />
             <Route path="/units" element={<Units cat={cat} />} />
             <Route path="/unit/:unitId/:lessonId?" element={<UnitPage cat={cat} />} />
+            <Route path="/sso" element={<SsoSheet />} />
             <Route path="/review" element={<Review cat={cat} />} />
             <Route path="/wrong" element={<WrongNotes cat={cat} />} />
             <Route path="/scraps" element={<Scraps cat={cat} />} />
             <Route path="/about" element={<About cat={cat} />} />
           </Routes>
         </Shell>
+        <SsoAgent cat={cat} />
       </HashRouter>
     </UserProvider>
   );

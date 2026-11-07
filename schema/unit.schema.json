@@ -287,6 +287,30 @@
               }
             }
           }
+        },
+        "sections": {
+          "type": "array",
+          "description": "본문 — 설명 단락. text 안의 빈 줄(\\n\\n)은 문단 구분",
+          "items": {
+            "type": "object",
+            "required": [
+              "title",
+              "text"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              },
+              "point": {
+                "type": "string",
+                "description": "한 줄 핵심 정리"
+              }
+            }
+          }
         }
       }
     }
