@@ -6,6 +6,7 @@ import { useUser } from "../data/UserContext";
 import { Icon } from "../components/Icon";
 import { TopBar } from "../components/Shell";
 import { LabView } from "../labs/registry";
+import { ssoEmit } from "../sso/bus";
 
 export function UnitPage({ cat }: { cat: Catalog }) {
   const { unitId, lessonId } = useParams();
@@ -63,6 +64,12 @@ function LessonBody({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
   const { toggleScrap, isScrapped, data } = useUser();
   const pred = data.predictions[lesson.id];
   const hasLab = !!lesson.lab && lesson.lab.type !== "planned";
+  // 쏘에게 지금 어떤 학습을 보는지 알린다
+  useEffect(() => {
+    ssoEmit({ type: "lesson", unitId: unit.id, lessonId: lesson.id, title: lesson.title, hasPredict: !!lesson.predict,
+      predicted: !!data.predictions[lesson.id], concepts: lesson.concepts });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lesson.id]);
   return (
     <section className="lesson-body">
       {hasLab ? (
@@ -179,6 +186,7 @@ function Quiz({ lesson }: { unit: Unit; lesson: Lesson }) {
     if (picked === null || revealed) return;
     setConf(c);
     logAnswer(c, picked === q.answer);
+    ssoEmit({ type: "answer", right: picked === q.answer, confidence: c, q: q.q, picked: q.choices[picked], correct: q.choices[q.answer] });
     if (picked === q.answer) {
       setScore((s) => s + 1);
       if (c === 1) addWrong(lesson.id, q.id, picked, 1); // 찍어서 맞힌 문제도 복습 카드로
@@ -191,6 +199,7 @@ function Quiz({ lesson }: { unit: Unit; lesson: Lesson }) {
     if (i + 1 >= items.length) {
       const total = items.length, correct = score;
       update((d) => ({ ...d, progress: { ...d.progress, [lesson.id]: { done: true, correct, total, at: Date.now() } } }));
+      ssoEmit({ type: "quiz-done", score: correct, total, hasMission: !!lesson.mission });
     }
     setI(i + 1); setPicked(null); setConf(null);
   };
@@ -241,8 +250,10 @@ function Quiz({ lesson }: { unit: Unit; lesson: Lesson }) {
 function PredictGate({ lesson }: { lesson: Lesson }) {
   const { update } = useUser();
   const p = lesson.predict!;
-  const choose = (k: number) =>
+  const choose = (k: number) => {
     update((d) => ({ ...d, predictions: { ...d.predictions, [lesson.id]: { picked: k, right: k === p.answer, at: Date.now() } } }));
+    ssoEmit({ type: "predict", right: k === p.answer });
+  };
   return (
     <div className="gate">
       <div className="gate-card">
@@ -271,6 +282,7 @@ function Mission({ lesson }: { lesson: Lesson }) {
       photos: [{ id: newId(), lessonId: lesson.id, dataUrl, caption: "현장 미션", at: Date.now() }, ...d.photos],
       missions: { ...d.missions, [lesson.id]: Date.now() },
     }));
+    ssoEmit({ type: "mission-done" });
     e.target.value = "";
   };
   return (

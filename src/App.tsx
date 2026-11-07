@@ -12,6 +12,7 @@ import { Scraps } from "./pages/Scraps";
 import { About } from "./pages/About";
 import { Review } from "./pages/Review";
 import { SsoSheet } from "./sso/SsoSheet";
+import { SsoAgent } from "./sso/SsoAgent";
 
 export function App() {
   const [cat, setCat] = useState<Catalog | null>(null);
@@ -34,6 +35,7 @@ export function App() {
             <Route path="/about" element={<About cat={cat} />} />
           </Routes>
         </Shell>
+        <SsoAgent cat={cat} />
       </HashRouter>
     </UserProvider>
   );

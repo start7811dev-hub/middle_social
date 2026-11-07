@@ -10,7 +10,12 @@ export type SsoEvent =
   | { type: "ask"; text: string; mode?: "chat" | "quiz" };
 
 const TARGET = new EventTarget();
+/** 쏘가 나중에 떠도 지금 보는 학습을 알 수 있게 마지막 학습 사건을 기억한다 */
+let lastLesson: Extract<SsoEvent, { type: "lesson" }> | null = null;
+export const getLastLesson = () => lastLesson;
 export function ssoEmit(e: SsoEvent) {
+  if (e.type === "lesson") lastLesson = e;
+  if (e.type === "leave-lesson") lastLesson = null;
   TARGET.dispatchEvent(new CustomEvent("sso", { detail: e }));
 }
 export function onSso(fn: (e: SsoEvent) => void) {
