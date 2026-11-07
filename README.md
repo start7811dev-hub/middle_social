@@ -35,6 +35,6 @@ npm run redteam -- https://<배포주소>   # 실제 Claude로 안전 시험
 - 3D 랩: 2종 동작, 약 12종 제작 예정
 - **쏘**: 3D 학습 에이전트(화이트 기본 + 4색). 학습 사건에 반응해 참견하고, 누르면 대화(Claude API). 말로 공부하기(음성 입출력·튜터 모드), 반말 말투
 - **능동 읽기**: 섹션 하나씩 열기, 빈칸 확인(자동 생성), 개념어 팝오버, 듣기, 쏘에게 설명하기
-- **안전**: 사전 필터 → 주제 분류 → 본 응답 → 출력 검사, 위기 시 도움 안내. 테스트 71개 + 실서버 레드팀 32개
+- **안전**: 사전 필터 → 주제 분류 → 본 응답 → 출력 검사, 위기 시 도움 안내. 테스트 190개 + 실서버 레드팀 38개 (독립 검토 반영)
 
 문서: [배포](docs/DEPLOY.md) · [쏘 안전 설계](docs/SAFETY.md) · [스타일](docs/STYLE.md) · [콘텐츠 추가](docs/CONTENT_GUIDE.md) · [교육과정 대조](docs/CURRICULUM_CHECK.md) · [Mac 앱](docs/MAC_APP.md) · [학습 방법론](docs/LEARNING_METHOD.md) · [역사 편집 원칙](docs/EDITORIAL_HISTORY.md)

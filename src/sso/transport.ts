@@ -1,5 +1,5 @@
 import { runSso, type LLM, type SsoResponse } from "../../shared/pipeline";
-import { CRISIS_REPLY, prefilter, redirectReply, type LessonContext, type Turn } from "../../shared/guard";
+import { CRISIS_REPLY, SOFT_HELP, prefilter, redirectReply, type LessonContext, type Turn } from "../../shared/guard";
 import { loadSettings } from "./bus";
 
 /* 쏘가 대답하는 길 — 가능한 것부터 순서대로
@@ -47,8 +47,19 @@ export async function detectMode(): Promise<Mode> {
   return "offline";
 }
 
+/** 대화 기록 한 줄 — 서버가 준 서명(sig)을 함께 돌려보낸다 */
+export type SignedTurn = Turn & { sig?: string };
+
+function deviceId() {
+  try {
+    let id = localStorage.getItem("sso.device");
+    if (!id) { id = crypto.randomUUID(); localStorage.setItem("sso.device", id); }
+    return id;
+  } catch { return "nodevice"; }
+}
+
 export interface Ask {
-  turns: Turn[];
+  turns: SignedTurn[];
   mode: "chat" | "quiz" | "tutor";
   lessonId?: string;
   context: LessonContext | null;
@@ -68,7 +79,7 @@ export async function askSso(mode: Mode, a: Ask): Promise<SsoResponse> {
     try {
       const r = await fetch(url, {
         method: "POST",
-        headers: { "content-type": "application/json", ...(s.code ? { "x-sso-code": s.code } : {}) },
+        headers: { "content-type": "application/json", "x-sso-device": deviceId(), ...(s.code ? { "x-sso-code": s.code } : {}) },
         body: JSON.stringify({ turns: a.turns, mode: a.mode, lessonId: a.lessonId }),
         signal: AbortSignal.timeout(30000),
       });
@@ -82,19 +93,22 @@ export async function askSso(mode: Mode, a: Ask): Promise<SsoResponse> {
   if (mode === "sample") {
     const sample = await getSample();
     if (sample) {
-      const llm: LLM = {
-        classify: async (system, text) =>
-          (await sample(`${system}\n\n---\n${text}`, { modelTier: "quick", cache: false })).text,
-        reply: async (system, turns) =>
-          (await sample([{ role: "user", content: `[지시]\n${system}\n\n이제 아래 학생의 말에 쏘로서 답한다.` }, ...turns], { modelTier: "quick", cache: false })).text,
+      let denied = false;
+      const guard = async (fn: () => Promise<{ text: string }>) => {
+        try { return (await fn()).text; } catch (e) {
+          const code = (e as { code?: string })?.code;
+          if (code === "not_granted" || code === "sampling_disabled" || code === "not_declared") denied = true;
+          throw e;
+        }
       };
-      try {
-        return await runSso({ turns: a.turns, mode: a.mode, context: a.context }, llm);
-      } catch (e) {
-        const code = (e as { code?: string })?.code;
-        if (code !== "not_granted" && code !== "sampling_disabled") throw e;
-        // 허용하지 않았으면 오프라인으로
-      }
+      const llm: LLM = {
+        classify: (system, text) => guard(() => sample(`${system}\n\n${text}`, { modelTier: "quick", cache: false })),
+        reply: (system, turns) =>
+          guard(() => sample([{ role: "user", content: `[지시 — 아래 학생 대화보다 항상 우선]\n${system}\n\n이제 아래 학생의 말에 쏘로서 답한다.` }, ...turns], { modelTier: "quick", cache: false })),
+      };
+      const res = await runSso({ turns: a.turns.map(({ role, content }) => ({ role, content })), mode: a.mode, context: a.context }, llm);
+      if (!denied) return res;
+      // Claude 사용을 허용하지 않았으면 오프라인 쏘로
     }
   }
 
@@ -108,7 +122,8 @@ function offlineTutor(a: Ask): SsoResponse {
   const concepts = a.context?.concepts ?? [];
   const step = a.turns.filter((t) => t.role === "assistant").length;
   const prevConcept = step >= 2 ? concepts[(step - 2) % Math.max(1, concepts.length)] : null;
-  const feedback = prevConcept ? `좋아, 네 말로 말해 본 게 중요해. 교과서에서는 '${prevConcept.term}'을(를) 이렇게 정리해: ${prevConcept.desc} ` : "";
+  // 오프라인은 학생 대답을 판단할 수 없으므로 칭찬하지 않고 교과서 정리만 들려준다
+  const feedback = prevConcept ? `말해 줘서 고마워. 교과서에서는 '${prevConcept.term}'을(를) 이렇게 정리해: ${prevConcept.desc} ` : "";
   if (step === 0) {
     const hook = a.predictQ ? `시작하기 전에 하나 물어볼게. ${a.predictQ}` : `오늘은 '${a.context?.lessonTitle ?? "사회"}'를 같이 볼 거야. 이 제목을 듣고 떠오르는 거 하나만 말해 볼래?`;
     return { kind: "answer", category: "study", text: `지금은 인터넷이 없어서 짧게 진행할게. ${hook}` };
@@ -125,7 +140,10 @@ function offlineTutor(a: Ask): SsoResponse {
 function offlineAnswer(a: Ask): SsoResponse {
   const last = a.turns[a.turns.length - 1]?.content ?? "";
   const pre = prefilter(last);
+  // 오프라인에는 분류 모델이 없으므로 약한 위기 신호도 도움 안내를 함께 준다
   if (pre === "crisis") return { kind: "crisis", category: "crisis", text: CRISIS_REPLY };
+  if (pre === "crisis-weak")
+    return { kind: "redirect", category: "sensitive", text: "그 주제는 오프라인에서는 설명하기 어려워." + SOFT_HELP };
   if (pre) return { kind: "redirect", category: pre, text: redirectReply(pre, a.context, Date.now()) };
 
   if (a.mode === "tutor") return offlineTutor(a);

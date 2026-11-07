@@ -2,12 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import type { Catalog } from "../data/types";
 import { contextFromUnit } from "../../shared/context";
-import type { QuizItem, Turn } from "../../shared/guard";
+import type { QuizItem } from "../../shared/guard";
 import type { SsoResponse } from "../../shared/pipeline";
 import { Icon } from "../components/Icon";
 import { SsoCharacter, type SsoMood } from "./SsoCharacter";
 import { getLastLesson, loadSettings, onSettings, onSso, type SsoEvent } from "./bus";
-import { askSso, detectMode, type Mode } from "./transport";
+import { askSso, detectMode, type Mode, type SignedTurn } from "./transport";
 import { TalkMode } from "./TalkMode";
 import { canListen, canSpeak, listen, speak, stopSpeaking } from "./voice";
 
@@ -17,7 +17,19 @@ import { canListen, canSpeak, listen, speak, stopSpeaking } from "./voice";
    ② 누르면 대화 패널이 열려 Claude와 안전하게 이야기한다
    ───────────────────────────────────────────── */
 
-interface Msg { role: "user" | "assistant"; content: string; kind?: SsoResponse["kind"]; quiz?: QuizItem; picked?: number }
+interface Msg { role: "user" | "assistant"; content: string; kind?: SsoResponse["kind"]; quiz?: QuizItem; picked?: number; sig?: string }
+
+/** 모델에 보낼 대화 기록 — 정상 답변(answer)으로 이어진 주고받기만, 서명과 함께 */
+function buildTurns(msgs: Msg[]): SignedTurn[] {
+  const out: SignedTurn[] = [];
+  msgs.forEach((m, i) => {
+    const isLast = i === msgs.length - 1;
+    if (m.role === "user") {
+      if (isLast || msgs[i + 1]?.kind === "answer") out.push({ role: "user", content: m.content });
+    } else if (m.kind === "answer") out.push({ role: "assistant", content: m.content, sig: m.sig });
+  });
+  return out.slice(-14);
+}
 interface Bubble { text: string; actions?: { label: string; run: () => void }[] }
 
 const MODE_LABEL: Record<Mode, string> = {
@@ -92,16 +104,14 @@ export function SsoAgent({ cat }: { cat: Catalog }) {
 
     const unit = lesson ? cat.units[lesson.unitId] : null;
     const l = unit?.lessons.find((x) => x.id === lesson?.lessonId);
-    const turns: Turn[] = next
-      .map((m) => ({ role: m.role, content: m.quiz ? `연습 문제: ${m.quiz.q}` : m.content }))
-      .slice(-8);
+    const turns = buildTurns(next);
     const res = await askSso(mode, {
       turns, mode: kind, lessonId: lesson?.lessonId,
       context: unit && lesson ? contextFromUnit(unit, lesson.lessonId) : null,
       allConcepts, lessonQuiz: l?.quiz ?? [],
     }).catch((): SsoResponse => ({ kind: "error", category: "study", text: "앗, 잠깐 멈췄어. 다시 물어봐 줄래?" }));
 
-    setMsgs((cur) => [...cur, { role: "assistant", content: res.text, kind: res.kind, quiz: res.quiz }]);
+    setMsgs((cur) => [...cur, { role: "assistant", content: res.text, kind: res.kind, quiz: res.quiz, sig: res.sig }]);
     setBusy(false);
     feel(res.kind === "error" ? "oops" : res.kind === "redirect" ? "wave" : res.kind === "crisis" ? "idle" : "talk", 3200);
   }, [busy, mode, msgs, lesson, cat, allConcepts, feel]);
