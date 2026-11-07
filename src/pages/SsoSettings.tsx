@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { loadSettings, saveSettings } from "../sso/bus";
+import { loadSettings, onSettings, saveSettings } from "../sso/bus";
 import { detectMode, type Mode } from "../sso/transport";
 import { SSO_COLORS } from "../sso/SsoSheet";
-import { canListen, canSpeak, onVoiceStatus, serverVoice, speak, voiceStatus, type VoiceStatus } from "../sso/voice";
+import { VoiceToggles } from "../sso/VoiceToggles";
+import { canSpeak, onVoiceStatus, serverVoice, speak, voiceStatus, type VoiceStatus } from "../sso/voice";
 
 const LABEL: Record<Mode, string> = {
   server: "Claude 연결됨 (쏘 서버)",
@@ -18,7 +19,8 @@ export function SsoSettingsCard() {
   const [heard, setHeard] = useState<VoiceStatus | null>(voiceStatus());
   useEffect(() => onVoiceStatus(setHeard), []);
   const sample = () => setTimeout(() => speak("안녕, 나 쏘야. 같이 사회 공부하자!"), 50);
-  const set = (patch: Partial<typeof s>) => { const n = { ...s, ...patch }; setS(n); saveSettings(n); };
+  useEffect(() => onSettings(() => setS(loadSettings())), []);
+  const set = (patch: Partial<typeof s>) => { const n = { ...loadSettings(), ...patch }; setS(n); saveSettings(n); };
   return (
     <div className="card settings">
       <div className="eyebrow">쏘 설정</div>
@@ -40,11 +42,10 @@ export function SsoSettingsCard() {
       {canSpeak() && (
         <>
           <div className="toggle-row">
-            <span>쏘 목소리</span>
+            <span>쏘 목소리 종류</span>
             <div className="swatches">
-              {tts && <button className={"chip" + (s.voice && s.engine !== "device" ? " on" : "")} onClick={() => { set({ voice: true, engine: "auto" }); sample(); }}>쏘 전용 목소리</button>}
-              <button className={"chip" + (s.voice && (s.engine === "device" || !tts) ? " on" : "")} onClick={() => { set({ voice: true, engine: "device" }); sample(); }}>기기 음성</button>
-              <button className={"chip" + (!s.voice ? " on" : "")} onClick={() => set({ voice: !s.voice })}>{s.voice ? "끄기" : "꺼짐"}</button>
+              {tts && <button className={"chip" + (s.engine !== "device" ? " on" : "")} onClick={() => { set({ voice: true, engine: "auto" }); sample(); }}>쏘 전용 목소리</button>}
+              <button className={"chip" + (s.engine === "device" || !tts ? " on" : "")} onClick={() => { set({ voice: true, engine: "device" }); sample(); }}>기기 음성</button>
             </div>
           </div>
           <p className="t-caption">{tts === undefined ? "목소리 확인 중…" : tts ? "쏘 전용 목소리는 서버의 음성 엔진이 만들어요. 안 되면 기기 음성으로 바뀌어요." : "서버에 음성 엔진이 아직 없어서 기기 음성으로 읽어요. Mac·iPad는 설정 › 손쉬운 사용 › 읽기 및 말하기에서 한국어 '유나(향상됨)' 음성을 받으면 훨씬 자연스러워요."}</p>
@@ -65,7 +66,10 @@ export function SsoSettingsCard() {
           )}
         </>
       )}
-      <div className="toggle-row"><span>말로 대답하기(음성 인식)</span><b>{canListen() ? "이 기기에서 사용 가능" : "이 기기에서는 글자로 대답"}</b></div>
+      <div className="toggle-row">
+        <span>목소리 듣기 · 말로 대답하기<br /><span className="t-caption">쏘 창과 '말로 공부하기'에도 같은 버튼이 있어요. 어디서 바꿔도 앱 전체에 적용돼요.</span></span>
+        <VoiceToggles />
+      </div>
       <label className="toggle-row" style={{ flexDirection: "row" }}>
         <span>조용히 모드 — 말풍선 참견 끄기 (표정은 그대로)</span>
         <input type="checkbox" checked={s.quiet} onChange={(e) => set({ quiet: e.target.checked })} />

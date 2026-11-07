@@ -9,7 +9,8 @@ import { SsoCharacter, type SsoMood } from "./SsoCharacter";
 import { getLastLesson, loadSettings, onSettings, onSso, type SsoEvent } from "./bus";
 import { askSso, detectMode, type Mode, type SignedTurn } from "./transport";
 import { TalkMode } from "./TalkMode";
-import { canListen, canSpeak, listen, speak, stopSpeaking } from "./voice";
+import { canSpeak, listen, speak, stopSpeaking } from "./voice";
+import { VoiceToggles, useVoicePrefs } from "./VoiceToggles";
 
 /* ─────────────────────────────────────────────
    쏘 에이전트 — 화면 오른쪽 아래에 살면서
@@ -44,6 +45,9 @@ export function SsoAgent({ cat }: { cat: Catalog }) {
   const nav = useNavigate();
   const loc = useLocation();
   const [settings, setSettings] = useState(loadSettings());
+  const { speakOn, micOn } = useVoicePrefs();
+  const speakOnRef = useRef(speakOn);
+  speakOnRef.current = speakOn;
   const [mode, setMode] = useState<Mode | null>(null);
   const [mood, setMood] = useState<SsoMood>("idle");
   const [bubble, setBubble] = useState<Bubble | null>(null);
@@ -111,8 +115,13 @@ export function SsoAgent({ cat }: { cat: Catalog }) {
       allConcepts, lessonQuiz: l?.quiz ?? [],
     }).catch((): SsoResponse => ({ kind: "error", category: "study", text: "앗, 잠깐 멈췄어. 다시 물어봐 줄래?" }));
 
+    const idx = next.length;
     setMsgs((cur) => [...cur, { role: "assistant", content: res.text, kind: res.kind, quiz: res.quiz, sig: res.sig }]);
     setBusy(false);
+    // 듣기 ON이면 쏘가 답을 소리 내 읽는다 (문제 카드는 제외)
+    if (speakOnRef.current && res.kind !== "quiz" && res.kind !== "error") {
+      speak(res.text, { onStart: () => { setSpeakingIdx(idx); feel("talk", 60000); }, onEnd: () => { setSpeakingIdx(null); feel("idle"); } }, { sig: res.sig });
+    }
     feel(res.kind === "error" ? "oops" : res.kind === "redirect" ? "wave" : res.kind === "crisis" ? "idle" : "talk", 3200);
   }, [busy, mode, msgs, lesson, cat, allConcepts, feel]);
 
@@ -220,8 +229,9 @@ export function SsoAgent({ cat }: { cat: Catalog }) {
               <div className="sso-status"><i className={"dot-" + (mode ?? "wait")} />{mode ? MODE_LABEL[mode] : "연결 확인 중"}</div>
             </div>
             <div className="sso-head-tools">
+              <VoiceToggles compact />
               {lesson && <button className="chip talk-chip" onClick={() => { setOpen(false); setTalk(true); }}>말로 공부하기</button>}
-              <button className="icon-btn" aria-label="닫기" onClick={() => setOpen(false)}><Icon name="wrong" size={20} /></button>
+              <button className="icon-btn" aria-label="닫기" onClick={() => { setOpen(false); stopSpeaking(); }}><Icon name="wrong" size={20} /></button>
             </div>
           </header>
           {lesson && <div className="sso-ctx"><Icon name="book" size={14} /> 지금 보는 학습: <b>{lesson.title}</b></div>}
@@ -273,7 +283,7 @@ export function SsoAgent({ cat }: { cat: Catalog }) {
             <textarea value={input} maxLength={300} rows={1} placeholder="사회 공부 질문을 적어 주세요"
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); ask(input); } }} />
-            {canListen() && (
+            {micOn && (
               <button type="button" className={"icon-btn mic-sm" + (listening ? " on" : "")} aria-label="말로 묻기" disabled={busy || !mode}
                 onClick={() => {
                   if (listening) return;

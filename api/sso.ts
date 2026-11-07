@@ -14,7 +14,7 @@
    SSO_DAILY_LIMIT         인스턴스당 하루 요청 상한 (기본 3000)
 */
 import { runSso, type LLM } from "../shared/pipeline.js";
-import { LIMITS, type Turn } from "../shared/guard.js";
+import { LIMITS, trimReply, type Turn } from "../shared/guard.js";
 import { LESSON_ID, contextFromUnit } from "../shared/context.js";
 import { UNITS } from "../shared/content.gen.js";
 import { checkAccess, clientKeys, cors, env, json, overLimit, sameString, sign } from "../shared/server.js";
@@ -33,8 +33,10 @@ function anthropicLLM(key: string): LLM {
       signal: AbortSignal.timeout(timeout),
     });
     if (!r.ok) throw new Error(`anthropic ${r.status}`);
-    const j = (await r.json()) as { content?: { type: string; text?: string }[] };
-    return (j.content ?? []).filter((b) => b.type === "text").map((b) => b.text ?? "").join("").trim();
+    const j = (await r.json()) as { content?: { type: string; text?: string }[]; stop_reason?: string };
+    const text = (j.content ?? []).filter((b) => b.type === "text").map((b) => b.text ?? "").join("").trim();
+    // 토큰 한도에 걸려 끊겼으면 마지막 완성 문장까지만
+    return j.stop_reason === "max_tokens" && text.length > 20 ? trimReply(text, text.length - 1) : text;
   };
   return {
     classify: (system, text) => call(env("SSO_GUARD_MODEL") || "claude-haiku-5-5", system, [{ role: "user", content: text }], 20, 8_000),

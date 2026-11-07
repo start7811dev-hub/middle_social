@@ -26,9 +26,23 @@ export const LIMITS = {
   maxInputChars: 300,
   maxTurns: 14,
   maxTurnChars: 600,
-  maxReplyTokens: 450,
-  maxTutorTokens: 320,
+  // 한국어는 토큰을 많이 쓰고 최신 모델은 답 전에 생각하는 데도 토큰을 쓴다 → 넉넉히 주고 길이는 글자 수로 자른다
+  maxReplyTokens: 1600,
+  maxTutorTokens: 1200,
+  /** 화면·목소리로 내보내는 답의 최대 글자 수 (TTS 서명 한도 700자보다 작게) */
+  maxReplyChars: 640,
 } as const;
+
+/** 답을 문장 끝에서 자른다 — 말이 중간에 끊기지 않게 */
+export function trimReply(text: string, max: number = LIMITS.maxReplyChars): string {
+  const t = text.trim();
+  if (t.length <= max) return t;
+  const cut = t.slice(0, max);
+  const ends = [...cut.matchAll(/[.!?。…~][)"'”’]?(?=\s|$)/g)];
+  const last = ends.length ? ends[ends.length - 1] : null;
+  const at = last ? last.index! + last[0].length : -1;
+  return (at >= max * 0.4 ? cut.slice(0, at) : cut.replace(/\s+\S*$/, "") + "…").trim();
+}
 
 /* ── 1. 정규화 ─────────────────────────────────────────────── */
 const ZERO_WIDTH = /[­᠎​-‏‪-‮⁠-⁤﻿]/g;

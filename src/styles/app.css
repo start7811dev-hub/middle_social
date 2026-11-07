@@ -620,3 +620,14 @@ html { -webkit-text-size-adjust: 100%; }
 body { overscroll-behavior-y: none; }
 button, .chip, .term { touch-action: manipulation; }
 .settings .t-caption.warn { color: var(--orange); }
+
+/* 목소리 듣기 / 말하기 토글 (앱 전체 공용) */
+.voice-toggles { display: inline-flex; gap: 6px; align-items: center; }
+.voice-toggles .vt {
+  display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: 999px;
+  border: 1px solid var(--line-2); background: transparent; color: var(--ink-2);
+  font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .15s, color .15s, border-color .15s;
+}
+.voice-toggles.compact .vt { width: 34px; padding: 0; justify-content: center; }
+.voice-toggles .vt.on { color: var(--primary, #6c5ce7); border-color: color-mix(in srgb, var(--primary, #6c5ce7) 55%, transparent); background: color-mix(in srgb, var(--primary, #6c5ce7) 14%, transparent); }
+.voice-toggles .vt:focus-visible { outline: 2px solid var(--primary, #6c5ce7); outline-offset: 2px; }
