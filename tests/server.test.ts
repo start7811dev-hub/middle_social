@@ -16,8 +16,12 @@ const req = (body: unknown, headers: Record<string, string> = {}) =>
   });
 const ask = (q: string) => ({ turns: [{ role: "user", content: q }] });
 
+// 배포 환경(Vercel)의 실제 환경 변수가 테스트에 섞이지 않게 기본값으로 고정한다
+const ISOLATE = ["SSO_ACCESS_CODE", "SSO_RATE_PER_10MIN", "SSO_RATE_PER_IP_10MIN", "SSO_DAILY_LIMIT", "SSO_ALLOWED_ORIGINS", "SSO_SIGNING_KEY", "SSO_MODEL", "SSO_GUARD_MODEL", "VERCEL_ENV"];
 beforeEach(() => {
   vi.unstubAllEnvs();
+  for (const k of ISOLATE) vi.stubEnv(k, "");
+  vi.stubEnv("ANTHROPIC_API_KEY", "test-key");
   vi.stubGlobal("fetch", vi.fn(async () => new Response("{}", { status: 404 })));
 });
 
