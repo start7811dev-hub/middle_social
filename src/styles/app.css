@@ -449,3 +449,12 @@ h5, .t-h5 { font-size: var(--fs-h5); line-height: 1.5; font-weight: 600; }
 .lesson-hero { display: flex; gap: var(--s-4); align-items: center; padding: var(--s-5) var(--s-6); border-radius: var(--r-xl); background: radial-gradient(80% 140% at 0% 0%, var(--surface), var(--bg-2)); box-shadow: var(--sh-1); }
 .lesson-hero-title { margin: 2px 0 8px; }
 .lesson-hero .chip-static { display: inline-flex; align-items: center; gap: 4px; }
+
+/* ── 쏘 ─────────────────────────── */
+.sso-char { display: block; padding: 0; background: none; border: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.sso-char canvas { display: block; width: 100% !important; height: 100% !important; }
+.sso-sheet { display: flex; flex-wrap: wrap; gap: var(--s-5); margin-bottom: var(--s-6); }
+.sso-sheet figure { margin: 0; text-align: center; background: var(--surface); border-radius: var(--r-lg); box-shadow: var(--sh-1); padding: var(--s-3); }
+.sso-sheet figcaption { font-size: var(--fs-small); color: var(--ink-2); }
+.sso-sheet figure.sso-on-white { background: #fff; box-shadow: inset 0 0 0 1px var(--line); }
+.sso-sheet figure { background: var(--bg-2); }
