@@ -13,16 +13,16 @@
    SSO_RATE_PER_IP_10MIN   IP당 10분 요청 한도 (기본 300 — 학교처럼 한 IP를 여럿이 쓰는 경우 고려)
    SSO_DAILY_LIMIT         인스턴스당 하루 요청 상한 (기본 3000)
 */
-import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { runSso, type LLM } from "../shared/pipeline.js";
 import { LIMITS, type Turn } from "../shared/guard.js";
 import { LESSON_ID, contextFromUnit } from "../shared/context.js";
 import { UNITS } from "../shared/content.gen.js";
+import { checkAccess, clientKeys, cors, env, json, overLimit, sameString, sign } from "../shared/server.js";
+export { sign } from "../shared/server.js";
 
 export const config = { maxDuration: 30 };
 
 const API = "https://api.anthropic.com/v1/messages";
-const env = (k: string) => (typeof process !== "undefined" ? process.env[k] : undefined);
 
 function anthropicLLM(key: string): LLM {
   const call = async (model: string, system: string, messages: Turn[], max_tokens: number, timeout: number) => {
@@ -43,53 +43,13 @@ function anthropicLLM(key: string): LLM {
   };
 }
 
-/* ── 쏘 답 서명 — 클라이언트가 쏘의 말을 지어내 대화 기록에 끼우지 못하게 ── */
-function signingKey() {
-  return env("SSO_SIGNING_KEY") || createHash("sha256").update(`sso-sign:${env("ANTHROPIC_API_KEY") ?? "dev"}`).digest("hex");
-}
-export function sign(text: string) {
-  return createHmac("sha256", signingKey()).update(text).digest("base64url").slice(0, 32);
-}
-function sameString(a: string, b: string) {
-  const x = Buffer.from(a), y = Buffer.from(b);
-  return x.length === y.length && timingSafeEqual(x, y);
-}
-
-/* ── 요청 한도 (인스턴스 메모리 기준, 최선 노력 — 학교 단위 운영은 Upstash 등 영속 저장소 권장) ── */
-const buckets = new Map<string, number[]>();
 let day = { key: "", n: 0 };
-export function overLimit(key: string, max: number, now = Date.now(), win = 10 * 60 * 1000) {
-  const list = (buckets.get(key) ?? []).filter((t) => now - t < win);
-  const over = list.length >= max;
-  if (!over) list.push(now);
-  buckets.set(key, list);
-  if (buckets.size > 20000) for (const [k, v] of buckets) if (!v.some((t) => now - t < win)) buckets.delete(k);
-  return over;
-}
 function overDaily(now = Date.now()) {
   const k = new Date(now).toISOString().slice(0, 10);
   if (day.key !== k) day = { key: k, n: 0 };
   day.n++;
   return day.n > Number(env("SSO_DAILY_LIMIT") || 3000);
 }
-
-function cors(req: Request): Record<string, string> {
-  const origin = req.headers.get("origin");
-  if (!origin) return {};
-  const allowed = ["app://bundle", ...(env("SSO_ALLOWED_ORIGINS") || "").split(",").map((s) => s.trim()).filter(Boolean)];
-  const self = new URL(req.url).origin;
-  const dev = env("VERCEL_ENV") !== "production" && /^http:\/\/localhost(:\d+)?$/.test(origin);
-  const ok = origin === self || allowed.includes(origin) || dev;
-  return ok
-    ? { "access-control-allow-origin": origin, "access-control-allow-headers": "content-type, x-sso-code, x-sso-device", "access-control-allow-methods": "GET, POST, OPTIONS", vary: "origin" }
-    : {};
-}
-
-const json = (req: Request, body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...cors(req) },
-  });
 
 export function OPTIONS(req: Request) {
   return new Response(null, { status: 204, headers: cors(req) });
@@ -105,15 +65,11 @@ export function POST(req: Request) {
 
 /** 테스트에서 모델을 바꿔 끼우기 위해 분리 */
 export async function handlePost(req: Request, llmOverride?: LLM) {
-  const ip = (req.headers.get("x-forwarded-for") || "local").split(",")[0].trim();
-  const device = (req.headers.get("x-sso-device") || "").replace(/[^a-z0-9-]/gi, "").slice(0, 64) || "nodevice";
+  const { ip, device } = clientKeys(req);
 
   // 접근 코드 — 틀린 시도는 IP당 10분 10회까지만
-  const code = env("SSO_ACCESS_CODE");
-  if (code && !sameString(req.headers.get("x-sso-code") || "", code)) {
-    if (overLimit(`bad:${ip}`, 10)) return json(req, { kind: "error", text: "접근 코드를 너무 많이 틀렸어. 10분 뒤에 다시 해 줘." }, 429);
-    return json(req, { kind: "error", text: "접근 코드가 필요해." }, 401);
-  }
+  const denied = checkAccess(req);
+  if (denied) return json(req, { kind: "error", text: denied.text }, denied.status);
   if (overLimit(`ip:${ip}`, Number(env("SSO_RATE_PER_IP_10MIN") || 300)) || overLimit(`dev:${ip}:${device}`, Number(env("SSO_RATE_PER_10MIN") || 30)))
     return json(req, { kind: "error", text: "질문이 너무 많아. 10분 쉬었다가 다시 물어봐 줘." }, 429);
   if (overDaily()) return json(req, { kind: "error", text: "오늘은 쏘가 쉬는 시간이야. 내일 다시 만나!" }, 429);

@@ -255,7 +255,7 @@ export function SsoAgent({ cat }: { cat: Catalog }) {
                     <button className={"say-btn" + (speakingIdx === i ? " on" : "")} aria-label="쏘 목소리로 듣기"
                       onClick={() => {
                         if (speakingIdx === i) { stopSpeaking(); setSpeakingIdx(null); return; }
-                        speak(m.content, { onStart: () => { setSpeakingIdx(i); feel("talk", 60000); }, onEnd: () => { setSpeakingIdx(null); feel("idle"); } });
+                        speak(m.content, { onStart: () => { setSpeakingIdx(i); feel("talk", 60000); }, onEnd: () => { setSpeakingIdx(null); feel("idle"); } }, { sig: m.sig });
                       }}>{speakingIdx === i ? "멈춤" : "듣기"}</button>
                   )}
                 </div>

@@ -7,7 +7,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 // 배포 환경 변수(접근 코드·한도)와 분리
-for (const k of ["SSO_ACCESS_CODE", "SSO_RATE_PER_10MIN", "SSO_RATE_PER_IP_10MIN", "SSO_DAILY_LIMIT"]) delete process.env[k];
+for (const k of ["SSO_ACCESS_CODE", "SSO_RATE_PER_10MIN", "SSO_RATE_PER_IP_10MIN", "SSO_DAILY_LIMIT", "SSO_TTS_PROVIDER"]) delete process.env[k];
 
 const out = fs.mkdtempSync(path.join(os.tmpdir(), "api-esm-"));
 execSync(`npx tsc -p tsconfig.server.json --noEmit false --outDir ${out} --declaration false`, { stdio: "inherit" });
@@ -20,5 +20,11 @@ if (!health.ok) throw new Error("api/sso GET 실패");
 delete process.env.ANTHROPIC_API_KEY;
 const r = await (await mod.POST(new Request("https://x.test/api/sso", { method: "POST", body: JSON.stringify({ turns: [{ role: "user", content: "죽고 싶어" }] }) }))).json();
 if (r.kind !== "crisis") throw new Error("api/sso 위기 응답 실패");
+
+// /api/tts — 엔진 없이도 불러와지고, 교과 본문을 찾을 수 있어야 한다
+const tts = await import(pathToFileURL(path.join(out, "api", "tts.js")).href);
+for (const fn of ["GET", "POST", "OPTIONS"]) if (typeof tts[fn] !== "function") throw new Error(`api/tts: ${fn} 없음`);
+if ((await tts.GET(new Request("https://x.test/api/tts")).json()).enabled !== false) throw new Error("api/tts GET 실패");
+if (!tts.sectionText("s1-g01-1", 0)) throw new Error("api/tts 본문 찾기 실패");
 fs.rmSync(out, { recursive: true, force: true });
-console.log("✓ 서버 함수 ESM 로드·호출 확인");
+console.log("✓ 서버 함수(sso·tts) ESM 로드·호출 확인");

@@ -3,6 +3,7 @@ import type { Concept, Lesson, Section } from "../data/types";
 import { useUser } from "../data/UserContext";
 import { Icon } from "../components/Icon";
 import { ssoEmit } from "../sso/bus";
+import { canSpeak, speak, stopSpeaking } from "../sso/voice";
 
 /* ─────────────────────────────────────────────
    능동 읽기 — 본문을 '읽기만' 하지 않게
@@ -78,21 +79,6 @@ function Highlighted({ text, concepts }: { text: string; concepts: Concept[] }) 
   );
 }
 
-function speak(text: string, onEnd: () => void) {
-  const synth = window.speechSynthesis;
-  if (!synth) return false;
-  synth.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = "ko-KR";
-  const v = synth.getVoices().find((x) => x.lang?.startsWith("ko"));
-  if (v) u.voice = v;
-  u.rate = 1.0;
-  u.onend = onEnd;
-  u.onerror = onEnd;
-  synth.speak(u);
-  return true;
-}
-
 export function ActiveReader({ lesson }: { lesson: Lesson }) {
   const { data, update } = useUser();
   const sections = lesson.sections ?? [];
@@ -103,7 +89,7 @@ export function ActiveReader({ lesson }: { lesson: Lesson }) {
   const [speaking, setSpeaking] = useState<number | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => () => { window.speechSynthesis?.cancel(); }, [lesson.id]);
+  useEffect(() => () => stopSpeaking(), [lesson.id]);
 
   const open = (n: number) => {
     update((d) => ({ ...d, reading: { ...(d.reading ?? {}), [lesson.id]: Math.max(n, d.reading?.[lesson.id] ?? 0) } }));
@@ -126,8 +112,10 @@ export function ActiveReader({ lesson }: { lesson: Lesson }) {
             <div className="section-no num">{String(k + 1).padStart(2, "0")}</div>
             <button className={"icon-btn listen" + (speaking === k ? " on" : "")} aria-label="듣기"
               onClick={() => {
-                if (speaking === k) { window.speechSynthesis?.cancel(); setSpeaking(null); return; }
-                if (speak(`${sec.title}. ${sec.text}`, () => setSpeaking(null))) setSpeaking(k);
+                if (speaking === k) { stopSpeaking(); setSpeaking(null); return; }
+                if (!canSpeak()) return;
+                setSpeaking(k);
+                speak(`${sec.title}. ${sec.text}`, { onEnd: () => setSpeaking((x) => (x === k ? null : x)) }, { section: { lessonId: lesson.id, index: k } });
               }}>
               <Icon name={speaking === k ? "wrong" : "spark"} size={16} /><span>{speaking === k ? "멈춤" : "듣기"}</span>
             </button>

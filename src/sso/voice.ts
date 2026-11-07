@@ -1,12 +1,15 @@
-/* 쏘의 목소리와 귀 — 브라우저 내장 Web Speech API
-   · 말하기(TTS): Mac·iPad·Chrome의 한국어 음성, 높이·속도로 쏘다운 목소리
+/* 쏘의 목소리와 귀
+   · 말하기: 서버에 음성 엔진이 설정돼 있으면 /api/tts의 고품질 목소리(쏘 전용),
+     없거나 실패하면 기기 내장 한국어 음성(높이를 억지로 바꾸지 않은 자연스러운 소리)
    · 듣기(STT): Safari·Chrome의 음성 인식 (ko-KR). 안 되는 환경에서는 글자 입력으로 대체
-   쏘 서버로는 음성을 보내지 않는다. 인식은 브라우저가 처리하며, Safari·Chrome은 이를 위해
-   Apple·Google 서버를 쓸 수 있다(각 회사 정책). */
+   음성 인식은 브라우저가 처리하며, Safari·Chrome은 이를 위해 Apple·Google 서버를 쓸 수 있다(각 회사 정책). */
 
 import { loadSettings } from "./bus";
+import { apiUrl, ssoHeaders } from "./transport";
 
-const PREFERRED = ["Yuna", "유나", "Sora", "Google 한국의", "Microsoft SunHi", "Heami", "Jian"];
+/* ── 기기 음성 (대체용) ───────────────────── */
+// 품질 좋은 순서: Mac·iPad의 '향상된' 음성 > Google > Microsoft
+const PREFERRED = ["Yuna (Premium)", "Yuna (Enhanced)", "유나(프리미엄)", "유나(향상됨)", "Sora", "Yuna", "유나", "Google 한국의", "Microsoft SunHi", "Heami", "Jian"];
 
 let voicesCache: SpeechSynthesisVoice[] = [];
 function koVoice() {
@@ -20,27 +23,31 @@ if (typeof window !== "undefined" && window.speechSynthesis) {
   window.speechSynthesis.onvoiceschanged = () => { voicesCache = window.speechSynthesis.getVoices(); };
 }
 
-export const PITCH = { soft: 1.1, sso: 1.35, high: 1.6 } as const;
+/** 기기 음성의 높낮이 — 기본은 손대지 않음(1.0). 높이를 크게 올리면 기계음이 심해진다 */
+export const PITCH = { soft: 0.95, sso: 1.0, high: 1.08 } as const;
 export type PitchPreset = keyof typeof PITCH;
 
-export const canSpeak = () => typeof window !== "undefined" && !!window.speechSynthesis;
+export const canSpeak = () => typeof window !== "undefined" && (!!window.speechSynthesis || typeof Audio !== "undefined");
 
 /** 소리 내어 읽기 좋게 정리 */
 function clean(t: string) {
   return t.replace(/[*#_`>|]/g, "").replace(/\s+/g, " ").replace(/\(([^)]{0,40})\)/g, ", $1,").trim();
 }
 
-export function speak(text: string, h: { onStart?: () => void; onEnd?: () => void } = {}) {
+interface Handlers { onStart?: () => void; onEnd?: () => void }
+/** sig: 쏘 서버가 준 서명 / section: 교과 본문 섹션(서버가 원문을 꺼내 읽음) */
+export interface SpeakOpts { sig?: string; section?: { lessonId: string; index: number } }
+
+function deviceSpeak(text: string, h: Handlers) {
   const synth = window.speechSynthesis;
   if (!synth) { h.onEnd?.(); return; }
-  if (!koVoice() && synth.getVoices().length === 0) { /* 음성 목록이 아직 없을 수도 있어 시도는 한다 */ }
   synth.cancel();
   const s = loadSettings();
   // 긴 답은 문장 단위로 나눠 읽어야 Safari에서 끊기지 않는다
   const parts = clean(text).match(/[^.!?。]+[.!?。]?/g) ?? [text];
   let started = false, ended = false;
   const finish = () => { if (!ended) { ended = true; window.clearTimeout(guard); window.clearTimeout(noStart); h.onEnd?.(); } };
-  // 음성 엔진이 없거나 끝 신호를 안 주는 기기 대비: 시작이 안 되면 1.5초, 길이에 맞춘 최대 시간 뒤 끝낸 것으로 본다
+  // 음성 엔진이 없거나 끝 신호를 안 주는 기기 대비
   const noStart = window.setTimeout(() => { if (!started) finish(); }, 1500);
   const guard = window.setTimeout(finish, clean(text).length * 160 + 3000);
   parts.forEach((p, i) => {
@@ -48,14 +55,106 @@ export function speak(text: string, h: { onStart?: () => void; onEnd?: () => voi
     u.lang = "ko-KR";
     const v = koVoice();
     if (v) u.voice = v;
-    u.pitch = PITCH[(s.pitch as PitchPreset) ?? "sso"] ?? PITCH.sso;
-    u.rate = s.rate ?? 1.05;
+    u.pitch = PITCH[(s.pitch as PitchPreset) ?? "sso"] ?? 1;
+    u.rate = Math.min(1.15, Math.max(0.85, s.rate ?? 1));
     if (i === 0) u.onstart = () => { if (!started) { started = true; h.onStart?.(); } };
     if (i === parts.length - 1) { u.onend = finish; u.onerror = finish; }
     synth.speak(u);
   });
 }
-export function stopSpeaking() { window.speechSynthesis?.cancel(); }
+
+/* ── 쏘 전용 목소리 (서버 TTS) ───────────────── */
+let ttsP: Promise<string | null> | null = null;
+let ttsFor = "";
+/** 서버 음성 엔진 이름 (없으면 null) */
+export function serverVoice(): Promise<string | null> {
+  const url = apiUrl("tts");
+  if (!url) return Promise.resolve(null);
+  if (ttsP && ttsFor === url) return ttsP;
+  ttsFor = url;
+  ttsP = fetch(url, { signal: AbortSignal.timeout(3500) })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((j) => (j?.enabled ? String(j.provider) : null))
+    .catch(() => null);
+  return ttsP;
+}
+
+// iOS Safari는 사용자가 누른 순간에만 소리를 허락한다 → 첫 터치 때 하나의 audio를 '열어 두고' 계속 재용
+let player: HTMLAudioElement | null = null;
+function getPlayer() {
+  if (!player && typeof Audio !== "undefined") { player = new Audio(); player.preload = "auto"; }
+  return player;
+}
+function silentWav() {
+  const n = 800, b = new ArrayBuffer(44 + n), v = new DataView(b);
+  const w = (o: number, t: string) => [...t].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+  w(0, "RIFF"); v.setUint32(4, 36 + n, true); w(8, "WAVE"); w(12, "fmt "); v.setUint32(16, 16, true);
+  v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, 8000, true); v.setUint32(28, 8000, true);
+  v.setUint16(32, 1, true); v.setUint16(34, 8, true); w(36, "data"); v.setUint32(40, n, true);
+  for (let i = 0; i < n; i++) v.setUint8(44 + i, 128);
+  return URL.createObjectURL(new Blob([b], { type: "audio/wav" }));
+}
+let unlocked = false;
+function unlock() {
+  if (unlocked) return;
+  const p = getPlayer();
+  if (!p) return;
+  unlocked = true;
+  p.src = silentWav();
+  p.play().catch(() => { unlocked = false; });
+}
+if (typeof window !== "undefined") {
+  for (const ev of ["pointerdown", "touchend", "keydown"]) window.addEventListener(ev, unlock, { capture: true, passive: true });
+}
+
+const cache = new Map<string, string>(); // 같은 말은 다시 만들지 않는다
+let seq = 0;
+let current: Handlers | null = null; // 지금 말하는 중인 쪽
+
+async function fetchAudio(text: string, o: SpeakOpts): Promise<string | null> {
+  const key = o.section ? `sec:${o.section.lessonId}:${o.section.index}` : text;
+  const hit = cache.get(key);
+  if (hit) return hit;
+  const url = apiUrl("tts");
+  if (!url) return null;
+  const body = o.section ? { lessonId: o.section.lessonId, section: o.section.index } : { text: text.replace(/\s+/g, " ").trim(), sig: o.sig };
+  const r = await fetch(url, { method: "POST", headers: { "content-type": "application/json", ...ssoHeaders() }, body: JSON.stringify(body), signal: AbortSignal.timeout(20000) });
+  if (!r.ok || !(r.headers.get("content-type") || "").includes("audio")) return null;
+  const src = URL.createObjectURL(await r.blob());
+  cache.set(key, src);
+  if (cache.size > 40) { const [k, v] = cache.entries().next().value as [string, string]; URL.revokeObjectURL(v); cache.delete(k); }
+  return src;
+}
+
+export function speak(text: string, h: Handlers = {}, o: SpeakOpts = {}) {
+  stopSpeaking();
+  const my = ++seq;
+  current = h;
+  let ended = false;
+  const done = () => { if (!ended && my === seq) { ended = true; current = null; h.onEnd?.(); } };
+  const fallback = () => { if (my === seq && !ended) deviceSpeak(text, { onStart: h.onStart, onEnd: done }); };
+  if (loadSettings().engine === "device") { fallback(); return; }
+
+  (async () => {
+    if (!(await serverVoice())) return fallback();
+    const src = await fetchAudio(text, o).catch(() => null);
+    if (my !== seq) return; // 그새 다른 말을 시작했으면 버린다
+    const p = getPlayer();
+    if (!src || !p) return fallback();
+    p.onplaying = () => { if (my === seq) h.onStart?.(); };
+    p.onended = done;
+    p.onerror = () => { if (my === seq) fallback(); };
+    p.src = src;
+    p.play().catch(() => fallback()); // 소리 허락을 못 받았으면 기기 음성으로
+  })();
+}
+
+export function stopSpeaking() {
+  seq++;
+  window.speechSynthesis?.cancel();
+  if (player) { player.onended = player.onerror = player.onplaying = null; try { player.pause(); } catch { /* 없음 */ } }
+  current = null; // 멈춘 말의 끝 신호는 보내지 않는다 (부른 쪽이 직접 상태를 정리)
+}
 
 /* ── 듣기 ─────────────────────────────── */
 type Rec = {
