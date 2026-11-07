@@ -2,6 +2,11 @@
 
 2022 개정 교육과정 중학교 사회(사회①·사회②) 24개 단원을 3D 지구본과 인터랙티브 랩으로 학습하는 Mac·iPad용 앱.
 
+## 배포 (Vercel)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/import?s=https://github.com/start7811dev-hub/middle_social)
+
+환경 변수 `ANTHROPIC_API_KEY`(필수), `SSO_ACCESS_CODE`(권장)를 넣고 배포한다. iPad는 Safari로 열어 '홈 화면에 추가'. 자세한 단계는 [docs/DEPLOY.md](docs/DEPLOY.md).
+
 ## 실행
 ```bash
 npm install

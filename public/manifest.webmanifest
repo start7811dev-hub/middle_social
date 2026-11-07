@@ -1,0 +1,17 @@
+{
+  "name": "Social Atlas — 쏘랑 사회 공부",
+  "short_name": "쏘 사회",
+  "description": "중학교 사회 3D 학습과 학습 도우미 쏘",
+  "lang": "ko",
+  "start_url": "./#/",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#eeedf7",
+  "theme_color": "#eeedf7",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

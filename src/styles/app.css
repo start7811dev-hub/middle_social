@@ -608,3 +608,14 @@ h5, .t-h5 { font-size: var(--fs-h5); line-height: 1.5; font-weight: 600; }
 .talk .sso-foot { text-align: center; }
 .chip.on { background: var(--primary-soft); border-color: var(--primary); color: var(--primary); font-weight: 600; }
 @media (max-width: 700px) { .talk-cta { flex-direction: column; align-items: flex-start; } }
+
+/* iPad·iPhone 홈 화면 웹앱 — 노치·홈 인디케이터 안전 영역 */
+@supports (padding: env(safe-area-inset-top)) {
+  .rail { padding-top: max(22px, env(safe-area-inset-top)); padding-bottom: env(safe-area-inset-bottom); }
+  .topbar { padding-top: env(safe-area-inset-top); height: calc(76px + env(safe-area-inset-top)); }
+  .sso-dock { bottom: max(10px, env(safe-area-inset-bottom)); right: max(18px, env(safe-area-inset-right)); }
+  .talk { padding-top: max(20px, env(safe-area-inset-top)); padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+}
+html { -webkit-text-size-adjust: 100%; }
+body { overscroll-behavior-y: none; }
+button, .chip, .term { touch-action: manipulation; }
