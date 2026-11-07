@@ -3,10 +3,11 @@ import type { Catalog } from "../data/types";
 import { contextFromUnit } from "../../shared/context";
 import { Icon } from "../components/Icon";
 import { SsoCharacter, type SsoMood } from "./SsoCharacter";
-import { getLastLesson, loadSettings, saveSettings } from "./bus";
+import { getLastLesson, loadSettings } from "./bus";
 import { askSso, type Mode, type SignedTurn } from "./transport";
 import type { SsoResponse } from "../../shared/pipeline";
-import { canListen, canSpeak, listen, speak, stopSpeaking } from "./voice";
+import { listen, speak, stopSpeaking } from "./voice";
+import { VoiceToggles, useVoicePrefs } from "./VoiceToggles";
 
 /* ─────────────────────────────────────────────
    말로 공부하기 — 쏘가 이끄는 대화 수업
@@ -21,7 +22,8 @@ export function TalkMode({ cat, mode, onClose }: { cat: Catalog; mode: Mode | nu
   const unit = lesson ? cat.units[lesson.unitId] : null;
   const l = unit?.lessons.find((x) => x.id === lesson?.lessonId);
   const ctx = useMemo(() => (unit && lesson ? contextFromUnit(unit, lesson.lessonId) : null), [unit, lesson]);
-  const [settings, setSettings] = useState(loadSettings());
+  const [settings] = useState(loadSettings());
+  const { speakOn, micOn } = useVoicePrefs();
   const [lines, setLines] = useState<Line[]>([]);
   const [phase, setPhase] = useState<Phase>("idle");
   const [heard, setHeard] = useState("");
@@ -32,9 +34,11 @@ export function TalkMode({ cat, mode, onClose }: { cat: Catalog; mode: Mode | nu
   const stopRef = useRef<() => void>(() => {});
   const turnsRef = useRef<SignedTurn[]>([]);
   const listRef = useRef<HTMLDivElement>(null);
-  const voiceOn = settings.voice && canSpeak();
-  const ear = canListen();
-  const [autoListen, setAutoListen] = useState(ear);
+  const voiceOn = speakOn;
+  const ear = micOn;
+  const [autoListen, setAutoListen] = useState(true);
+  // 말하기를 끄면 듣던 것도 멈춘다
+  useEffect(() => { if (!ear) { stopRef.current(); setPhase((p) => (p === "listening" ? "idle" : p)); } }, [ear]);
 
   const mood: SsoMood = phase === "speaking" ? "talk" : phase === "thinking" ? "think" : phase === "listening" ? "idle" : "idle";
   const last = [...lines].reverse().find((x) => x.role === "assistant");
@@ -106,7 +110,6 @@ export function TalkMode({ cat, mode, onClose }: { cat: Catalog; mode: Mode | nu
   useEffect(() => { listRef.current?.scrollTo({ top: 1e6, behavior: "smooth" }); }, [lines]);
 
   const close = () => { stopRef.current(); stopSpeaking(); onClose(); };
-  const toggleVoice = () => { const n = { ...settings, voice: !settings.voice }; setSettings(n); saveSettings(n); if (!n.voice) stopSpeaking(); };
 
   return (
     <div className="talk" role="dialog" aria-label="쏘랑 말로 공부하기">
@@ -116,7 +119,7 @@ export function TalkMode({ cat, mode, onClose }: { cat: Catalog; mode: Mode | nu
           <h2>{l?.title ?? "사회"}</h2>
         </div>
         <div className="talk-tools">
-          {canSpeak() && <button className={"chip" + (voiceOn ? " on" : "")} onClick={toggleVoice}>{voiceOn ? "쏘 목소리 켜짐" : "쏘 목소리 꺼짐"}</button>}
+          <VoiceToggles />
           {ear && <button className={"chip" + (autoListen ? " on" : "")} onClick={() => setAutoListen((v) => !v)}>{autoListen ? "자동 듣기" : "눌러서 말하기"}</button>}
           <button className="icon-btn" aria-label="끝내기" onClick={close}><Icon name="wrong" size={22} /></button>
         </div>

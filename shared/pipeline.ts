@@ -1,8 +1,7 @@
 import {
   CLASSIFIER_SYSTEM, CRISIS_REPLY, FALLBACK_REPLY, SOFT_HELP, classifierInput, cleanHistory, parseCategory, parseQuiz,
   postfilter, prefilter, quizPrompt, redirectReply, sanitizeTurns, ssoSystemPrompt, tutorPrompt,
-  type GuardCategory, type LessonContext, type QuizItem, type Turn,
-} from "./guard.js";
+  type GuardCategory, type LessonContext, type QuizItem, type Turn, trimReply } from "./guard.js";
 
 /** 모델 호출부만 바꿔 끼운다 — 서버는 Anthropic API, 아티팩트는 sample, 테스트는 모의 함수. */
 export interface LLM {
@@ -72,7 +71,7 @@ export async function runSso(req: SsoRequest, llm: LLM, seed = Date.now()): Prom
     // 5) 출력 검사
     const checked = postfilter(out);
     if (!checked.ok || !checked.text) return { kind: "redirect", category: "study", text: redirectReply("offtopic", ctx, seed) };
-    return { kind: "answer", category: "study", text: checked.text + (weak ? SOFT_HELP : "") };
+    return { kind: "answer", category: "study", text: trimReply(checked.text) + (weak ? SOFT_HELP : "") };
   } catch {
     return { kind: "error", category: "study", text: FALLBACK_REPLY };
   }

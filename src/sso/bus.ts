@@ -26,10 +26,10 @@ export function onSso(fn: (e: SsoEvent) => void) {
 }
 
 /* 쏘 설정 — 기기별 (localStorage, 실패해도 기본값) */
-export interface SsoSettings { server: string; code: string; color: string; quiet: boolean; voice: boolean; pitch: "soft" | "sso" | "high"; rate: number; engine: "auto" | "device" }
+export interface SsoSettings { server: string; code: string; color: string; quiet: boolean; pitch: "soft" | "sso" | "high"; rate: number; engine: "auto" | "device"; /** 쏘 답을 자동으로 소리 내 읽기 */ voice: boolean; /** 말로 대답하기(마이크) */ mic: boolean }
 const KEY = "sso.settings.v1";
 export function loadSettings(): SsoSettings {
-  const d: SsoSettings = { server: (import.meta.env.VITE_SSO_SERVER as string | undefined) ?? "", code: "", color: "#ffffff", quiet: false, voice: true, pitch: "sso", rate: 1, engine: "auto" };
+  const d: SsoSettings = { server: (import.meta.env.VITE_SSO_SERVER as string | undefined) ?? "", code: "", color: "#ffffff", quiet: false, voice: true, pitch: "sso", rate: 1, engine: "auto", mic: true };
   try { return { ...d, ...JSON.parse(localStorage.getItem(KEY) || "{}") }; } catch { return d; }
 }
 export function saveSettings(s: SsoSettings) {

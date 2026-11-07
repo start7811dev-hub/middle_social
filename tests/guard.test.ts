@@ -128,3 +128,18 @@ it("compact는 공백·기호·제로폭·끼운 숫자 제거", () => {
   expect(compact(" 죽 고-싶 어!")).toBe("죽고싶어");
   expect(compact("자‍1살")).toBe("자살");
 });
+
+describe("trimReply — 말이 중간에 끊기지 않게", async () => {
+  const { trimReply } = await import("../shared/guard");
+  it("짧은 답은 그대로", () => expect(trimReply("좋아, 같이 보자.")).toBe("좋아, 같이 보자."));
+  it("긴 답은 마지막 완성 문장까지", () => {
+    const t = "좋아, 같이 시작해 보자. 먼저 목록 화면에서 단원을 하나 골라 봐. 뭘 고를지 모르겠다면 학교에서 지금 배우는 부분이나 요즘";
+    expect(trimReply(t, t.length - 1)).toBe("좋아, 같이 시작해 보자. 먼저 목록 화면에서 단원을 하나 골라 봐.");
+  });
+  it("640자 한도", () => {
+    const t = "수요가 늘면 가격이 올라가. ".repeat(60);
+    const r = trimReply(t);
+    expect(r.length).toBeLessThanOrEqual(640);
+    expect(r.endsWith("올라가.")).toBe(true);
+  });
+});
