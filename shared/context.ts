@@ -1,4 +1,4 @@
-import type { LessonContext } from "./guard";
+import type { LessonContext } from "./guard.js";
 
 /** 콘텐츠 JSON(단원) + lessonId → 쏘에게 줄 학습 문맥 */
 export const LESSON_ID = /^s[12]-[gs]\d{2}-\d{1,2}$/;
