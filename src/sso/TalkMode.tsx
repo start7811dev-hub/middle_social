@@ -162,7 +162,7 @@ export function TalkMode({ cat, mode, onClose }: { cat: Catalog; mode: Mode | nu
             <button type="button" className="chip" disabled={phase === "thinking"} onClick={() => send("잘 모르겠어. 힌트 줘.")}>힌트 줘</button>
           </div>
         )}
-        <p className="sso-foot">말은 이 기기(브라우저)에서 글자로 바뀌고, 쏘에게는 글자만 전달돼요. 대화는 저장되지 않아요.</p>
+        <p className="sso-foot">말은 브라우저의 음성 인식(Apple·Google)이 글자로 바꾸고, 쏘에게는 글자만 전달돼요. 대화는 저장되지 않아요.</p>
       </footer>
     </div>
   );

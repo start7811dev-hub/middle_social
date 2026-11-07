@@ -275,7 +275,7 @@ export function SsoAgent({ cat }: { cat: Catalog }) {
             )}
             <button className="btn" disabled={busy || !input.trim() || !mode}>보내기</button>
           </form>
-          <p className="sso-foot">쏘는 사회 공부 이야기만 해요. 대화는 저장되지 않고, 말은 기기 안에서 글자로 바뀌어 전달돼요.</p>
+          <p className="sso-foot">쏘는 사회 공부 이야기만 해요. 대화는 저장되지 않아요.</p>
         </section>
       )}
 

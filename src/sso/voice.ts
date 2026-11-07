@@ -1,7 +1,8 @@
 /* 쏘의 목소리와 귀 — 브라우저 내장 Web Speech API
    · 말하기(TTS): Mac·iPad·Chrome의 한국어 음성, 높이·속도로 쏘다운 목소리
    · 듣기(STT): Safari·Chrome의 음성 인식 (ko-KR). 안 되는 환경에서는 글자 입력으로 대체
-   서버로 음성을 보내지 않는다(인식은 브라우저·OS가 처리). */
+   쏘 서버로는 음성을 보내지 않는다. 인식은 브라우저가 처리하며, Safari·Chrome은 이를 위해
+   Apple·Google 서버를 쓸 수 있다(각 회사 정책). */
 
 import { loadSettings } from "./bus";
 
