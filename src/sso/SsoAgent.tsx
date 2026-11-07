@@ -8,6 +8,8 @@ import { Icon } from "../components/Icon";
 import { SsoCharacter, type SsoMood } from "./SsoCharacter";
 import { getLastLesson, loadSettings, onSettings, onSso, type SsoEvent } from "./bus";
 import { askSso, detectMode, type Mode } from "./transport";
+import { TalkMode } from "./TalkMode";
+import { canListen, canSpeak, listen, speak, stopSpeaking } from "./voice";
 
 /* ─────────────────────────────────────────────
    쏘 에이전트 — 화면 오른쪽 아래에 살면서
@@ -36,6 +38,9 @@ export function SsoAgent({ cat }: { cat: Catalog }) {
   const [open, setOpen] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [busy, setBusy] = useState(false);
+  const [talk, setTalk] = useState(false);
+  const [listening, setListening] = useState(false);
+  const [speakingIdx, setSpeakingIdx] = useState<number | null>(null);
   const [input, setInput] = useState("");
   const [lesson, setLesson] = useState<{ unitId: string; lessonId: string; title: string; concepts: { term: string; desc: string }[] } | null>(() => {
     const l = getLastLesson();
@@ -77,7 +82,7 @@ export function SsoAgent({ cat }: { cat: Catalog }) {
     if (busy || !mode) return;
     setOpen(true);
     setBubble(null);
-    const shown = kind === "quiz" ? "연습 문제 하나 내 줘요." : text.trim().slice(0, 300);
+    const shown = kind === "quiz" ? "연습 문제 하나 내 줘." : text.trim().slice(0, 300);
     if (!shown) return;
     const next: Msg[] = [...msgs, { role: "user", content: shown }];
     setMsgs(next);
@@ -94,7 +99,7 @@ export function SsoAgent({ cat }: { cat: Catalog }) {
       turns, mode: kind, lessonId: lesson?.lessonId,
       context: unit && lesson ? contextFromUnit(unit, lesson.lessonId) : null,
       allConcepts, lessonQuiz: l?.quiz ?? [],
-    }).catch((): SsoResponse => ({ kind: "error", category: "study", text: "쏘가 잠깐 멈췄어요. 다시 물어봐 줄래요?" }));
+    }).catch((): SsoResponse => ({ kind: "error", category: "study", text: "앗, 잠깐 멈췄어. 다시 물어봐 줄래?" }));
 
     setMsgs((cur) => [...cur, { role: "assistant", content: res.text, kind: res.kind, quiz: res.quiz }]);
     setBusy(false);
@@ -109,12 +114,12 @@ export function SsoAgent({ cat }: { cat: Catalog }) {
       case "lesson": {
         setLesson({ unitId: e.unitId, lessonId: e.lessonId, title: e.title, concepts: e.concepts });
         window.setTimeout(() => {
-          if (e.hasPredict && !e.predicted) say({ text: "보기 전에 먼저 예측! 틀려도 괜찮아요. 빗나간 게 더 오래 기억나거든요." }, "wave", true);
+          if (e.hasPredict && !e.predicted) say({ text: "보기 전에 먼저 예측해 봐! 틀려도 괜찮아. 빗나간 게 더 오래 기억나거든." }, "wave", true);
           else if (e.concepts.length) {
             const c = pick(e.concepts);
             say({
-              text: `'${c.term}', 내 말로 설명할 수 있어요? 막히면 나를 눌러요.`,
-              actions: [{ label: "쉽게 설명해 줘", run: () => ask(`'${c.term}'을(를) 쉽게 설명해 줘.`) }],
+              text: `'${c.term}', 네 말로 설명할 수 있어? 막히면 나 눌러. 말로 같이 공부해도 돼.`,
+              actions: [{ label: "쉽게 설명해 줘", run: () => ask(`'${c.term}'을(를) 쉽게 설명해 줘.`) }, { label: "말로 공부하기", run: () => setTalk(true) }],
             }, "talk", true);
           }
         }, 900);
@@ -122,31 +127,34 @@ export function SsoAgent({ cat }: { cat: Catalog }) {
       }
       case "leave-lesson": setLesson(null); break;
       case "predict":
-        say(e.right ? { text: "적중! 감이 좋은데요. 왜 그런지 본문에서 확인해 봐요." } : { text: "빗나갔다! 괜찮아요, 이렇게 틀린 게 제일 오래 남아요." }, e.right ? "happy" : "oops", true);
+        say(e.right ? { text: "적중! 감 좋은데? 왜 그런지 본문에서 확인해 보자." } : { text: "빗나갔다! 괜찮아, 이렇게 틀린 게 제일 오래 남아." }, e.right ? "happy" : "oops", true);
         break;
       case "answer":
         if (!e.right && e.confidence === 3)
           say({
-            text: "착각 발견! 확실하다고 했는데 틀린 건 고치면 오래 가요. 같이 볼까요?",
+            text: "착각 발견! 확실하다고 했는데 틀린 건 고치면 오래 가. 같이 볼까?",
             actions: [{ label: "왜 틀렸는지 물어보기", run: () => ask(`'${e.q}' 문제에서 '${e.picked}'를 골랐는데 왜 틀렸어? 정답은 '${e.correct}'래.`) }],
           }, "oops", true);
-        else if (e.right && e.confidence === 1) say({ text: "맞혔지만 찍은 거죠? 내일 복습에 한 번 더 나올 거예요." }, "think", true);
+        else if (e.right && e.confidence === 1) say({ text: "맞히긴 했는데 찍은 거지? 내일 복습에 한 번 더 나올 거야." }, "think", true);
         else if (e.right && e.confidence === 3) feel("happy");
         else if (!e.right) feel("oops");
         break;
       case "quiz-done":
         if (e.score === e.total)
-          say({ text: `만점! ${e.hasMission ? "현장 미션도 해 볼래요? 아래에 있어요." : "다음 학습으로 가 볼까요?"}`, actions: [{ label: "연습 문제 하나 더", run: () => ask("", "quiz") }] }, "happy", true);
-        else say({ text: "틀린 문제는 오늘의 복습에 들어갔어요. 비슷한 문제 하나 더 풀어 볼래요?", actions: [{ label: "연습 문제 하나 더", run: () => ask("", "quiz") }] }, "talk", true);
+          say({ text: `만점! ${e.hasMission ? "현장 미션도 해 볼래? 아래에 있어." : "다음 학습으로 가 볼까?"}`, actions: [{ label: "연습 문제 하나 더", run: () => ask("", "quiz") }] }, "happy", true);
+        else say({ text: "틀린 문제는 오늘의 복습에 넣어 뒀어. 비슷한 문제 하나 더 풀어 볼래?", actions: [{ label: "연습 문제 하나 더", run: () => ask("", "quiz") }] }, "talk", true);
         break;
       case "home":
-        if (e.due > 0) say({ text: `오늘 복습할 카드가 ${e.due}장 있어요. 5분이면 끝나요!`, actions: [{ label: "복습하러 가기", run: () => nav("/review") }] }, "wave");
+        if (e.due > 0) say({ text: `오늘 복습할 카드가 ${e.due}장 있어. 5분이면 끝나!`, actions: [{ label: "복습하러 가기", run: () => nav("/review") }] }, "wave");
         break;
       case "mission-done":
-        say({ text: "미션 완료! 교과서 개념이 우리 동네에도 있었죠?" }, "happy", true);
+        say({ text: "미션 완료! 교과서 개념이 우리 동네에도 있었지?" }, "happy", true);
         break;
       case "ask":
         ask(e.text, e.mode);
+        break;
+      case "talk":
+        setOpen(false); setBubble(null); setTalk(true);
         break;
     }
   }), [say, feel, ask, nav]);
@@ -160,7 +168,7 @@ export function SsoAgent({ cat }: { cat: Catalog }) {
         if (open || !lesson.concepts.length) return;
         const c = pick(lesson.concepts);
         say({
-          text: `잠깐! '${c.term}'이(가) 뭐였는지 기억나요?`,
+          text: `잠깐! '${c.term}'이(가) 뭐였는지 기억나?`,
           actions: [{ label: "정답 보기", run: () => { setBubble({ text: `${c.term}: ${c.desc}` }); feel("talk"); } }],
         }, "think");
       }, 75000);
@@ -190,6 +198,8 @@ export function SsoAgent({ cat }: { cat: Catalog }) {
         { label: "복습 방법", text: "오늘의 복습은 어떻게 하는 거야?" },
       ];
 
+  if (talk) return <TalkMode cat={cat} mode={mode} onClose={() => setTalk(false)} />;
+
   return (
     <div className={"sso-dock" + (open ? " open" : "")}>
       {open && (
@@ -199,14 +209,17 @@ export function SsoAgent({ cat }: { cat: Catalog }) {
               <b>쏘</b> <span className="t-caption">사회 공부 도우미</span>
               <div className="sso-status"><i className={"dot-" + (mode ?? "wait")} />{mode ? MODE_LABEL[mode] : "연결 확인 중"}</div>
             </div>
-            <button className="icon-btn" aria-label="닫기" onClick={() => setOpen(false)}><Icon name="wrong" size={20} /></button>
+            <div className="sso-head-tools">
+              {lesson && <button className="chip talk-chip" onClick={() => { setOpen(false); setTalk(true); }}>말로 공부하기</button>}
+              <button className="icon-btn" aria-label="닫기" onClick={() => setOpen(false)}><Icon name="wrong" size={20} /></button>
+            </div>
           </header>
           {lesson && <div className="sso-ctx"><Icon name="book" size={14} /> 지금 보는 학습: <b>{lesson.title}</b></div>}
 
           <div className="sso-list" ref={listRef}>
             {msgs.length === 0 && (
               <div className="sso-msg a">
-                안녕하세요, 쏘예요. 사회 공부하다 막히면 언제든 물어봐요. 개념 설명, 예시, 연습 문제까지 도와줄게요.
+                안녕, 나 쏘야. 사회 공부하다 막히면 언제든 물어봐. 개념 설명, 예시, 연습 문제까지 도와줄게. 말로 하고 싶으면 위의 '말로 공부하기'를 눌러.
               </div>
             )}
             {msgs.map((m, i) =>
@@ -226,7 +239,16 @@ export function SsoAgent({ cat }: { cat: Catalog }) {
                   </div>
                 </div>
               ) : (
-                <div key={i} className={"sso-msg " + (m.role === "user" ? "u" : "a") + (m.kind === "redirect" ? " redirect" : "")}>{m.content}</div>
+                <div key={i} className={"sso-msg " + (m.role === "user" ? "u" : "a") + (m.kind === "redirect" ? " redirect" : "")}>
+                  {m.content}
+                  {m.role === "assistant" && canSpeak() && (
+                    <button className={"say-btn" + (speakingIdx === i ? " on" : "")} aria-label="쏘 목소리로 듣기"
+                      onClick={() => {
+                        if (speakingIdx === i) { stopSpeaking(); setSpeakingIdx(null); return; }
+                        speak(m.content, { onStart: () => { setSpeakingIdx(i); feel("talk", 60000); }, onEnd: () => { setSpeakingIdx(null); feel("idle"); } });
+                      }}>{speakingIdx === i ? "멈춤" : "듣기"}</button>
+                  )}
+                </div>
               ),
             )}
             {busy && <div className="sso-msg a typing"><span /><span /><span /></div>}
@@ -241,9 +263,19 @@ export function SsoAgent({ cat }: { cat: Catalog }) {
             <textarea value={input} maxLength={300} rows={1} placeholder="사회 공부 질문을 적어 주세요"
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); ask(input); } }} />
+            {canListen() && (
+              <button type="button" className={"icon-btn mic-sm" + (listening ? " on" : "")} aria-label="말로 묻기" disabled={busy || !mode}
+                onClick={() => {
+                  if (listening) return;
+                  setListening(true);
+                  listen({ onInterim: setInput, onFinal: (t) => ask(t), onEnd: () => setListening(false), onError: () => setListening(false) });
+                }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0 0 14 0M12 18v3" /></svg>
+              </button>
+            )}
             <button className="btn" disabled={busy || !input.trim() || !mode}>보내기</button>
           </form>
-          <p className="sso-foot">쏘는 사회 공부 이야기만 해요. 대화는 이 화면을 닫으면 사라지고 저장되지 않아요.</p>
+          <p className="sso-foot">쏘는 사회 공부 이야기만 해요. 대화는 저장되지 않고, 말은 기기 안에서 글자로 바뀌어 전달돼요.</p>
         </section>
       )}
 

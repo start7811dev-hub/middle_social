@@ -49,13 +49,16 @@ export async function detectMode(): Promise<Mode> {
 
 export interface Ask {
   turns: Turn[];
-  mode: "chat" | "quiz";
+  mode: "chat" | "quiz" | "tutor";
   lessonId?: string;
   context: LessonContext | null;
   /** 오프라인 검색용 — 앱 전체 개념 */
   allConcepts: { term: string; desc: string; where: string }[];
   /** 오프라인 연습 문제용 */
   lessonQuiz: { q: string; choices: string[]; answer: number; explain: string }[];
+  /** 오프라인 대화 학습용 */
+  lessonSections?: { title: string; text: string; point?: string }[];
+  predictQ?: string;
 }
 
 export async function askSso(mode: Mode, a: Ask): Promise<SsoResponse> {
@@ -99,12 +102,33 @@ export async function askSso(mode: Mode, a: Ask): Promise<SsoResponse> {
 }
 
 /* ── 오프라인 쏘 ───────────────────────────────────────── */
+/** 연결이 없을 때의 대화 학습 — 섹션 핵심을 하나씩 말하고 개념을 말로 설명해 보게 한다 */
+function offlineTutor(a: Ask): SsoResponse {
+  const secs = a.lessonSections ?? [];
+  const concepts = a.context?.concepts ?? [];
+  const step = a.turns.filter((t) => t.role === "assistant").length;
+  const prevConcept = step >= 2 ? concepts[(step - 2) % Math.max(1, concepts.length)] : null;
+  const feedback = prevConcept ? `좋아, 네 말로 말해 본 게 중요해. 교과서에서는 '${prevConcept.term}'을(를) 이렇게 정리해: ${prevConcept.desc} ` : "";
+  if (step === 0) {
+    const hook = a.predictQ ? `시작하기 전에 하나 물어볼게. ${a.predictQ}` : `오늘은 '${a.context?.lessonTitle ?? "사회"}'를 같이 볼 거야. 이 제목을 듣고 떠오르는 거 하나만 말해 볼래?`;
+    return { kind: "answer", category: "study", text: `지금은 인터넷이 없어서 짧게 진행할게. ${hook}` };
+  }
+  const i = step - 1;
+  if (i < secs.length) {
+    const c = concepts[i % Math.max(1, concepts.length)];
+    const sec = secs[i];
+    return { kind: "answer", category: "study", text: `${feedback}${sec.title}. ${sec.point ?? sec.text.slice(0, 120)} ${c ? `그럼 질문! '${c.term}'이(가) 뭔지 네 말로 말해 볼래?` : "여기서 가장 중요한 말이 뭐였는지 말해 볼래?"}` };
+  }
+  return { kind: "answer", category: "study", text: `${feedback}오늘 배운 걸 한 문장으로 말하면 뭐라고 할래? 말해 보면 훨씬 오래 기억나.` };
+}
+
 function offlineAnswer(a: Ask): SsoResponse {
   const last = a.turns[a.turns.length - 1]?.content ?? "";
   const pre = prefilter(last);
   if (pre === "crisis") return { kind: "crisis", category: "crisis", text: CRISIS_REPLY };
   if (pre) return { kind: "redirect", category: pre, text: redirectReply(pre, a.context, Date.now()) };
 
+  if (a.mode === "tutor") return offlineTutor(a);
   if (a.mode === "quiz") {
     const q = a.lessonQuiz[Math.floor(Math.random() * a.lessonQuiz.length)];
     if (q) return { kind: "quiz", category: "study", text: q.q, quiz: q };

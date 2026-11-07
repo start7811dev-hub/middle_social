@@ -7,6 +7,7 @@ import { Icon } from "../components/Icon";
 import { TopBar } from "../components/Shell";
 import { LabView } from "../labs/registry";
 import { ssoEmit } from "../sso/bus";
+import { ActiveReader } from "./ActiveReader";
 
 export function UnitPage({ cat }: { cat: Catalog }) {
   const { unitId, lessonId } = useParams();
@@ -116,14 +117,15 @@ function LessonBody({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
         <p className="standard-text">{lesson.standard.text ?? "성취기준 원문 대조 후 입력 예정입니다."}</p>
       </div>
 
-      {lesson.sections?.map((sec, k) => (
-        <article key={k} className="card section">
-          <div className="section-no num">{String(k + 1).padStart(2, "0")}</div>
-          <h3>{sec.title}</h3>
-          {sec.text.split(/\n\n+/).map((para, j) => <p key={j} className="t-body-l">{para}</p>)}
-          {sec.point && <p className="section-point"><Icon name="idea" size={16} /> {sec.point}</p>}
-        </article>
-      ))}
+      <div className="talk-cta">
+        <div>
+          <b>읽기 대신 쏘랑 말로 공부할래?</b>
+          <span className="t-caption">쏘가 설명하고 묻고, 너는 말로 대답해. 마이크가 없으면 글자로도 돼.</span>
+        </div>
+        <button className="btn" onClick={() => ssoEmit({ type: "talk" })}>말로 공부하기</button>
+      </div>
+
+      <ActiveReader lesson={lesson} />
 
       {lesson.concepts.length > 0 && (
         <div className="concepts">

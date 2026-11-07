@@ -7,7 +7,8 @@ export type SsoEvent =
   | { type: "quiz-done"; score: number; total: number; hasMission: boolean }
   | { type: "home"; due: number }
   | { type: "mission-done" }
-  | { type: "ask"; text: string; mode?: "chat" | "quiz" };
+  | { type: "ask"; text: string; mode?: "chat" | "quiz" }
+  | { type: "talk" };
 
 const TARGET = new EventTarget();
 /** 쏘가 나중에 떠도 지금 보는 학습을 알 수 있게 마지막 학습 사건을 기억한다 */
@@ -25,10 +26,10 @@ export function onSso(fn: (e: SsoEvent) => void) {
 }
 
 /* 쏘 설정 — 기기별 (localStorage, 실패해도 기본값) */
-export interface SsoSettings { server: string; code: string; color: string; quiet: boolean }
+export interface SsoSettings { server: string; code: string; color: string; quiet: boolean; voice: boolean; pitch: "soft" | "sso" | "high"; rate: number }
 const KEY = "sso.settings.v1";
 export function loadSettings(): SsoSettings {
-  const d: SsoSettings = { server: (import.meta.env.VITE_SSO_SERVER as string | undefined) ?? "", code: "", color: "#ffffff", quiet: false };
+  const d: SsoSettings = { server: (import.meta.env.VITE_SSO_SERVER as string | undefined) ?? "", code: "", color: "#ffffff", quiet: false, voice: true, pitch: "sso", rate: 1.05 };
   try { return { ...d, ...JSON.parse(localStorage.getItem(KEY) || "{}") }; } catch { return d; }
 }
 export function saveSettings(s: SsoSettings) {

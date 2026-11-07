@@ -132,6 +132,26 @@ describe("POST /api/sso", () => {
   });
 });
 
+describe("튜터 모드", () => {
+  it("짧은 대답도 분류를 거쳐 튜터 프롬프트로 답한다", async () => {
+    const llm = mk("study", "좋아, 거의 맞았어! 그럼 가격이 오르면 수요량은 어떻게 될까?");
+    const r = await (await handlePost(req({ turns: [{ role: "assistant", content: "가격이 내리면 어떻게 될까?" }, { role: "user", content: "더 많이 사" }].slice(1), mode: "tutor" }), llm)).json();
+    expect(r.kind).toBe("answer");
+    expect((llm.reply.mock.calls[0] as unknown[])[0]).toContain("대화 학습 모드");
+  });
+  it("튜터 모드에서도 위기 표현은 즉시 안내", async () => {
+    const llm = mk("study");
+    const r = await (await handlePost(req({ ...ask("그냥 다 끝내고 싶어"), mode: "tutor" }), llm)).json();
+    expect(r.kind).toBe("crisis");
+    expect(llm.reply).not.toHaveBeenCalled();
+  });
+  it("쏘의 말투 규칙(반말·비하 금지)이 들어간다", async () => {
+    const llm = mk("study");
+    await handlePost(req(ask("세계화가 뭐야?")), llm);
+    expect((llm.reply.mock.calls[0] as unknown[])[0]).toContain("다정한 반말");
+  });
+});
+
 describe("GET /api/sso", () => {
   it("상태 응답", async () => {
     const r = await (GET(new Request("https://sso.example.com/api/sso"))).json();

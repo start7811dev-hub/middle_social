@@ -1,5 +1,5 @@
 /* Vercel Function — 쏘 대화 API
-   POST /api/sso  { turns:[{role,content}], mode?: "chat"|"quiz", lessonId?: "s1-g02-1" }
+   POST /api/sso  { turns:[{role,content}], mode?: "chat"|"quiz"|"tutor", lessonId?: "s1-g02-1" }
    GET  /api/sso  상태 확인 { ok, ai, accessCode }
 
    환경 변수 (Vercel → Settings → Environment Variables)
@@ -33,7 +33,7 @@ function anthropicLLM(key: string): LLM {
   };
   return {
     classify: (system, text) => call(env("SSO_GUARD_MODEL") || "claude-haiku-5-5", system, [{ role: "user", content: text }], 20),
-    reply: (system, turns) => call(env("SSO_MODEL") || "claude-sonnet-5-5", system, turns, LIMITS.maxReplyTokens),
+    reply: (system, turns, o) => call(env("SSO_MODEL") || "claude-sonnet-5-5", system, turns, o?.short ? LIMITS.maxTutorTokens : LIMITS.maxReplyTokens),
   };
 }
 
@@ -110,7 +110,7 @@ export async function handlePost(req: Request, llmOverride?: LLM) {
   // 키가 없어도 위기·유해 표현은 사전 필터에서 바로 안내한다
   const llm = llmOverride ?? (key ? anthropicLLM(key) : null);
   const noKey: LLM = { classify: async () => { throw new Error("no key"); }, reply: async () => { throw new Error("no key"); } };
-  const res = await runSso({ turns: body.turns, mode: body.mode === "quiz" ? "quiz" : "chat", context }, llm ?? noKey);
+  const res = await runSso({ turns: body.turns, mode: body.mode === "quiz" || body.mode === "tutor" ? body.mode : "chat", context }, llm ?? noKey);
   if (!llm && res.kind === "error" && res.category !== "invalid")
     return json(req, { kind: "error", text: "쏘 서버에 API 키가 설정되지 않았어요." }, 503);
   return json(req, res, res.kind === "error" && res.category === "invalid" ? 400 : 200);

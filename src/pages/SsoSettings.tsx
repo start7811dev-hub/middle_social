@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { loadSettings, saveSettings } from "../sso/bus";
 import { detectMode, type Mode } from "../sso/transport";
 import { SSO_COLORS } from "../sso/SsoSheet";
+import { canListen, canSpeak, speak } from "../sso/voice";
 
 const LABEL: Record<Mode, string> = {
   server: "Claude 연결됨 (쏘 서버)",
@@ -32,6 +33,18 @@ export function SsoSettingsCard() {
           ))}
         </div>
       </div>
+      {canSpeak() && (
+        <div className="toggle-row">
+          <span>쏘 목소리</span>
+          <div className="swatches">
+            {([["soft", "차분"], ["sso", "쏘 기본"], ["high", "높게"]] as const).map(([k, label]) => (
+              <button key={k} className={"chip" + (s.pitch === k ? " on" : "")} onClick={() => { set({ pitch: k, voice: true }); setTimeout(() => speak("안녕, 나 쏘야. 같이 사회 공부하자!"), 50); }}>{label}</button>
+            ))}
+            <button className={"chip" + (!s.voice ? " on" : "")} onClick={() => set({ voice: !s.voice })}>{s.voice ? "끄기" : "꺼짐"}</button>
+          </div>
+        </div>
+      )}
+      <div className="toggle-row"><span>말로 대답하기(음성 인식)</span><b>{canListen() ? "이 기기에서 사용 가능" : "이 기기에서는 글자로 대답"}</b></div>
       <label className="toggle-row" style={{ flexDirection: "row" }}>
         <span>조용히 모드 — 말풍선 참견 끄기 (표정은 그대로)</span>
         <input type="checkbox" checked={s.quiet} onChange={(e) => set({ quiet: e.target.checked })} />
